@@ -21,7 +21,7 @@ export default defineConfig({
     presetTypography(),
     presetWebFonts({
       fonts: {
-        sans: "Inter:400,500,600,700",
+        sans: "Montserrat:400,500,600,700",
       },
     }),
   ],

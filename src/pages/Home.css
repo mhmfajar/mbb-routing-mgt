@@ -1,0 +1,173 @@
+.gradient-border-b {
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg,
+      #e3ecfa 0%,
+      #2196f3 30%,
+      #000 60%,
+      #fff 100%);
+  border-image-slice: 1;
+}
+
+/* Tab content animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.tab-content {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.tab-content-fade {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Custom Ant Design Tabs styling */
+.custom-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+.custom-tabs .ant-tabs-nav::before {
+  border-bottom: none;
+}
+
+.custom-tabs .ant-tabs-tab {
+  background: #afabab !important;
+  border: none !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 6px 24px !important;
+  margin-right: 0 !important;
+  transition: all 0.3s ease;
+}
+
+.custom-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  color: white !important;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.custom-tabs .ant-tabs-tab:hover {
+  background: #8e8e8e !important;
+}
+
+.custom-tabs .ant-tabs-tab-active {
+  background: linear-gradient(to right, #0143a0, #0067e6, #0067e6) !important;
+}
+
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+}
+
+.custom-tabs .ant-tabs-ink-bar {
+  display: none;
+}
+
+/* Custom Ant Design Select styling */
+.custom-select {
+  background: transparent !important;
+  border-radius: 0;
+  border: none !important;
+  border-bottom: 1px solid black !important;
+}
+
+.custom-select .ant-select-selector {
+  background-color: #f3f4f6 !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 4px 12px !important;
+  min-height: 36px !important;
+}
+
+.custom-select .ant-select-selection-overflow {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.custom-select .ant-select-selection-overflow-item {
+  flex: none;
+}
+
+.custom-select .ant-select-selection-item {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-right: 4px !important;
+  font-size: 14px;
+  color: #374151;
+}
+
+.custom-select .ant-select-selection-item::before {
+  content: "✓ ";
+  color: #6b7280;
+}
+
+.custom-select .ant-select-selection-item-remove {
+  display: none !important;
+}
+
+.custom-select .ant-select-arrow {
+  color: #0067e6 !important;
+  font-size: 14px;
+}
+
+.custom-select:hover .ant-select-selector {
+  background-color: #e5e7eb !important;
+}
+
+/* Dropdown menu styling */
+.custom-select-dropdown .ant-select-item-option-selected {
+  background-color: #e6f4ff !important;
+}
+
+.custom-select-dropdown .ant-select-item-option-selected .ant-select-item-option-state {
+  color: #0067e6;
+}
+
+/* Check Routing Button hover effect */
+.check-routing-btn {
+  background: linear-gradient(90deg, #3ddad7 0%, #f24b6a 100%) !important;
+  font-weight: bold;
+  border: none;
+  transition: all 0.3s ease !important;
+}
+
+.check-routing-btn:hover {
+  background: linear-gradient(90deg, #2bc9c6 0%, #e03a59 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(242, 75, 106, 0.4) !important;
+}
+
+.check-routing-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(242, 75, 106, 0.3) !important;
+}
+
+/* Custom Search Input styling */
+.custom-search {
+  border-radius: 4px !important;
+}
+
+.custom-search .ant-input {
+  padding: 4px 8px !important;
+}
+
+.custom-search .ant-input-prefix {
+  margin-right: 8px;
+}

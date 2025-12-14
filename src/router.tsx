@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from "react-router";
 
 import { MainLayout } from "~/layouts";
 import HomePage from "~/pages/Home";
+import NotFoundPage from "~/pages/NotFound";
 
 // Route configuration
 const routes: RouteObject[] = [
@@ -12,6 +13,10 @@ const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
       },
     ],
   },
