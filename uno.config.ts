@@ -65,6 +65,31 @@ export default defineConfig({
     container: "max-w-1200px mx-auto w-full",
   },
 
+  // Preflights for custom scrollbar
+  preflights: [
+    {
+      getCSS: () => `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+          -webkit-appearance: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #e5e5e5;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #44546a;
+          border-radius: 4px;
+          min-height: 30px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #374357;
+        }
+      `,
+    },
+  ],
+
   // Safelist classes that should always be included
   safelist: [
     "btn-primary",

@@ -23,85 +23,45 @@ export const dateOptions = [
     { value: "6-10 December 2025", label: "6-10 December 2025" },
 ];
 
-// Routing Table Data
+// Routing Table Data - imported from JSON
+import routingTableJson from "./routingTableData.json";
+
 export interface RoutingRow {
     key: string;
     no: number;
     ebr: string;
-    peEbrTransit: string;
-    path: string;
-    p: string;
-    uplink: { ebr: string; pe: string; p: string; cloud: string };
-    downlink: { igw: string; cloud: string; p: string; pe: string };
-    total: number;
-    status: string;
+    peTransit: string;
+    paths: string[];
+    bds: number | string;
+    btc: number | string;
+    jt2: number | string;
+    pnk: number | string;
+    grandTotal: number | string;
 }
 
-export const routingTableData: RoutingRow[] = [
-    {
-        key: "1",
-        no: 1,
-        ebr: "JKT-EBR-1",
-        peEbrTransit: "PE-01-METRANJKT",
-        path: "PE 01 MTA via JKT 01 via CDN via YGY via SBY...",
-        p: "P1",
-        uplink: { ebr: "1", pe: "1", p: "1", cloud: "12" },
-        downlink: { igw: "1", cloud: "1", p: "1", pe: "1" },
-        total: 18,
-        status: "Symmetric",
-    },
-    {
-        key: "2",
-        no: 2,
-        ebr: "JKT-EBR-2",
-        peEbrTransit: "PE-02-METRANJKT",
-        path: "PE 02 MTA via JKT 02 via CDN via YGY via SBY...",
-        p: "P1",
-        uplink: { ebr: "1", pe: "1", p: "1", cloud: "12" },
-        downlink: { igw: "1", cloud: "1", p: "1", pe: "1" },
-        total: 18,
-        status: "Symmetric",
-    },
-    {
-        key: "3",
-        no: 3,
-        ebr: "JKT-EBR-3",
-        peEbrTransit: "PE-03-METRANJKT",
-        path: "PE 03 MTA via JKT 03 via CDN via YGY via SBY...",
-        p: "P2",
-        uplink: { ebr: "1", pe: "2", p: "1", cloud: "15" },
-        downlink: { igw: "2", cloud: "1", p: "1", pe: "1" },
-        total: 24,
-        status: "Asymmetric",
-    },
-];
+export const routingTableData: RoutingRow[] = routingTableJson.routingTableData as RoutingRow[];
 
-// Table columns configuration
+// Table columns configuration - updated to match reference
 export const routingTableColumns = [
-    { title: "No", dataIndex: "no", key: "no", width: 50 },
-    { title: "EBR", dataIndex: "ebr", key: "ebr", width: 100 },
-    { title: "PE EBR / Transit", dataIndex: "peEbrTransit", key: "peEbrTransit", width: 150 },
-    { title: "Path", dataIndex: "path", key: "path", ellipsis: true },
-    { title: "P", dataIndex: "p", key: "p", width: 50 },
+    { title: "NO", dataIndex: "no", key: "no", width: 50, fixed: "left" as const },
+    { title: "EBR", dataIndex: "ebr", key: "ebr", width: 150, fixed: "left" as const },
+    { title: "PE-Transit", dataIndex: "peTransit", key: "peTransit", width: 180 },
     {
-        title: "Uplink (ms)",
-        children: [
-            { title: "EBR", dataIndex: ["uplink", "ebr"], key: "ulEbr", width: 50 },
-            { title: "PE", dataIndex: ["uplink", "pe"], key: "ulPe", width: 50 },
-            { title: "P", dataIndex: ["uplink", "p"], key: "ulP", width: 50 },
-            { title: "Cloud", dataIndex: ["uplink", "cloud"], key: "ulCloud", width: 60 },
-        ],
+        title: "Path",
+        dataIndex: "paths",
+        key: "paths",
+        width: 400,
+        render: (paths: string[]) => (
+            paths.map((p, i) => (
+                `<div key={${i}} style="padding: 2px 0; border-bottom: ${i < paths.length - 1 ? '1px solid #f0f0f0' : 'none'}">${p}</div>`
+            )).join("")
+        ),
     },
-    {
-        title: "Downlink (ms)",
-        children: [
-            { title: "IGW", dataIndex: ["downlink", "igw"], key: "dlIgw", width: 50 },
-            { title: "Cloud", dataIndex: ["downlink", "cloud"], key: "dlCloud", width: 60 },
-            { title: "P", dataIndex: ["downlink", "p"], key: "dlP", width: 50 },
-            { title: "PE", dataIndex: ["downlink", "pe"], key: "dlPe", width: 50 },
-        ],
-    },
-    { title: "Total", dataIndex: "total", key: "total", width: 60 },
+    { title: "BDS", dataIndex: "bds", key: "bds", width: 70, align: "center" as const },
+    { title: "BTC", dataIndex: "btc", key: "btc", width: 70, align: "center" as const },
+    { title: "JT2", dataIndex: "jt2", key: "jt2", width: 70, align: "center" as const },
+    { title: "PNK", dataIndex: "pnk", key: "pnk", width: 70, align: "center" as const },
+    { title: "Grand Total", dataIndex: "grandTotal", key: "grandTotal", width: 100, align: "center" as const },
 ];
 
 // History Routing Data

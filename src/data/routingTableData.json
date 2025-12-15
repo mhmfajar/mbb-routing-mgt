@@ -1,0 +1,351 @@
+{
+    "routingTableData": [
+        {
+            "key": "1",
+            "no": 1,
+            "ebr": "EBR AB.1",
+            "peTransit": "PE-D7-AB1-TRANSIT",
+            "paths": [
+                "P-D7-AB1 <12 ms> P-D7-MDO <2 ms> P-D7-PNK",
+                "P-D7-AB1 <12 ms> P-D7-MDO <36 ms> P-D1-BTC",
+                "P-D7-AB1 <24 ms> P-D7-PTR <1 ms> P-D7-BAL <2 ms> P-D7-PTR",
+                "P-D7-AB1 <24 ms> P-D7-PTR <21 ms> P-D2-JT2"
+            ],
+            "bds": 1,
+            "btc": "",
+            "jt2": 1,
+            "pnk": "",
+            "grandTotal": 1
+        },
+        {
+            "key": "2",
+            "no": 2,
+            "ebr": "EBR AB.2",
+            "peTransit": "PE-D7-PNK-TRANSIT",
+            "paths": [
+                "P-D7-PNK <1 ms> P-D7-MDO <34 ms> P-D2-JT2",
+                "P-D7-PNK <1 ms> P-D7-MDO <36 ms> P-D1-BTC",
+                "P-D7-PNK <1 ms> P-D7-MDO <36 ms> P-D1-BDS"
+            ],
+            "bds": 11.5,
+            "btc": 11.5,
+            "jt2": 11.5,
+            "pnk": "",
+            "grandTotal": 11.5
+        },
+        {
+            "key": "3",
+            "no": 3,
+            "ebr": "EBR Amir Hamzah.1",
+            "peTransit": "PE-D1-MDC-TRANSIT",
+            "paths": [
+                "P-D1-MDC <11 ms> P-D1-BDS",
+                "P-D1-MDC <11 ms> P-D1-BDS <14 ms> P-D2-JT2",
+                "P-D1-MDC <11 ms> P-D1-BDS <2 ms> P-D1-BTC <36 ms> P-D7-MDO <2 ms> P-D7-PNK"
+            ],
+            "bds": 1.5,
+            "btc": 1.5,
+            "jt2": "",
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "4",
+            "no": 4,
+            "ebr": "EBR Amir Hamzah.2",
+            "peTransit": "PE-D1-PUB-TRANSIT",
+            "paths": [
+                "P-D1-PUB <10 ms> P-D1-BTC",
+                "P-D1-PUB <10 ms> P-D1-BTC <1 ms> P-D1-BDS",
+                "P-D1-PUB <10 ms> P-D1-BTC <18 ms> P-D1-BDS <15 ms> P-D2-JT2",
+                "P-D1-PUB <10 ms> P-D1-BTC <36 ms> P-D7-MDO <1 ms> P-D7-PNK"
+            ],
+            "bds": 1,
+            "btc": "",
+            "jt2": 1,
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "5",
+            "no": 5,
+            "ebr": "EBR Batam.1",
+            "peTransit": "PE-D1-BDS-TRANSIT",
+            "paths": [
+                "P-D1-BDS <14 ms> P-D2-JT2",
+                "P-D1-BDS <2 ms> P-D1-BTC",
+                "P-D1-BDS <2 ms> P-D1-BTC <37 ms> P-D7-MDO <2 ms> P-D7-PNK"
+            ],
+            "bds": 1,
+            "btc": 1,
+            "jt2": "",
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "6",
+            "no": 6,
+            "ebr": "EBR Batam.2",
+            "peTransit": "PE2-D1-BTC-TRANSIT",
+            "paths": [
+                "P-D1-BTC <1 ms> P-D1-BDS",
+                "P-D1-BTC <1 ms> P-D1-BDS <14 ms> P-D2-JT2",
+                "P-D1-BTC <38 ms> P-D7-MDO <2 ms> P-D7-PNK"
+            ],
+            "bds": 1,
+            "btc": "",
+            "jt2": 1,
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "7",
+            "no": 7,
+            "ebr": "EBR BDL.2",
+            "peTransit": "PE-D1-PGC-TRANSIT",
+            "paths": [
+                "P-D1-PGC <8 ms> P-D1-BTC",
+                "P-D1-PGC <8 ms> P-D1-BTC <2 ms> P-D1-BDS",
+                "P-D1-PGC <8 ms> P-D1-BTC <2 ms> P-D1-BDS"
+            ],
+            "bds": 6.5,
+            "btc": 6.5,
+            "jt2": "",
+            "pnk": "",
+            "grandTotal": 6.5
+        },
+        {
+            "key": "8",
+            "no": 8,
+            "ebr": "EBR BJB.1",
+            "peTransit": "PE-D6-BJM-TRANSIT",
+            "paths": [
+                "P-D6-BJM <1 ms> P-D6-ULN <22 ms> P-D7-PNK",
+                "P-D6-BJM <18 ms> P-D2-JT2",
+                "P-D6-BJM <29 ms> P-D1-BTC"
+            ],
+            "bds": 6.5,
+            "btc": "",
+            "jt2": 1,
+            "pnk": "",
+            "grandTotal": 1
+        },
+        {
+            "key": "9",
+            "no": 9,
+            "ebr": "EBR BJB.2",
+            "peTransit": "PE-D6-ULN-TRANSIT",
+            "paths": [
+                "P-D6-BJM <29 ms> P-D1-BTC <2 ms> P-D1-BDS",
+                "P-D6-ULN <2 ms> P-D6-BJM <9 ms> P-D5-KBL <11 ms> P-D2-JT2",
+                "P-D6-ULN <22 ms> P-D7-PNK",
+                "P-D6-ULN <8 ms> P-D5-RKT <2 ms> P-D5-KBL <19 ms> P-D1-BTC",
+                "P-D6-ULN <8 ms> P-D5-RKT <2 ms> P-D5-KBL <19 ms> P-D1-BTC"
+            ],
+            "bds": 1.5,
+            "btc": 1.5,
+            "jt2": "",
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "10",
+            "no": 10,
+            "ebr": "EBR BPP.1",
+            "peTransit": "PE3-D6-BPP-TRANSIT",
+            "paths": [
+                "P-D6-BPP <1 ms> P-D6-BAM <13 ms> P-D7-PNK",
+                "P-D6-BPP <7 ms> P-D6-BJM <29 ms> P-D1-BTC",
+                "P-D6-BPP <7 ms> P-D6-BJM <29 ms> P-D1-BTC <2 ms> P-D1-BDS"
+            ],
+            "bds": 1,
+            "btc": 1,
+            "jt2": "",
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "11",
+            "no": 11,
+            "ebr": "EBR BPP.2",
+            "peTransit": "PE-D6-BAM-TRANSIT",
+            "paths": [
+                "P-D6-BPP <8 ms> P-D6-BJM <18 ms> P-D2-JT2",
+                "P-D6-BAM <1 ms> P-D6-BPP <7 ms> P-D6-BJM <29 ms> P-D1-BTC",
+                "P-D6-BAM <1 ms> P-D6-BPP <7 ms> P-D6-BJM <29 ms> P-D1-BTC <3 ms> P-D1-BDS",
+                "P-D6-BAM <1 ms> P-D6-BPP <8 ms> P-D6-BJM <18 ms> P-D2-JT2"
+            ],
+            "bds": 1,
+            "btc": 1,
+            "jt2": "",
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "12",
+            "no": 12,
+            "ebr": "EBR BSD.1",
+            "peTransit": "PE3-D2-CKA-TRANSIT",
+            "paths": [
+                "P-D6-BAM <1 ms> P-D7-PNK",
+                "P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D2-CKA <16 ms> P-D5-RKT <13 ms> P-D7-BAL <18 ms> P-D7-PNK",
+                "P-D2-CKA <2 ms> P-D2-JT2"
+            ],
+            "bds": 1.5,
+            "btc": 1.5,
+            "jt2": "",
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "13",
+            "no": 13,
+            "ebr": "EBR BSD.2",
+            "peTransit": "PE3-D2-JT2-TRANSIT",
+            "paths": [
+                "P-D2-JT2 <2 ms> P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D2-JT2 <2 ms> P-D2-CKA <14 ms> P-D1-BTC",
+                "P-D2-JT2 <34 ms> P-D7-MDO <1 ms> P-D7-PNK"
+            ],
+            "bds": 1.5,
+            "btc": 1.5,
+            "jt2": "",
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "14",
+            "no": 14,
+            "ebr": "EBR BUARAN.1",
+            "peTransit": "PE3-D2-CKA-TRANSIT",
+            "paths": [
+                "P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D2-CKA <13 ms> P-D1-BTC <1 ms> P-D1-BDS",
+                "P-D2-CKA <16 ms> P-D5-RKT <13 ms> P-D7-BAL <18 ms> P-D7-PNK"
+            ],
+            "bds": 1.5,
+            "btc": "",
+            "jt2": 1.5,
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "15",
+            "no": 15,
+            "ebr": "EBR BUARAN.2",
+            "peTransit": "PE3-D2-JT2-TRANSIT",
+            "paths": [
+                "P-D2-CKA <2 ms> P-D2-JT2",
+                "P-D2-JT2 <2 ms> P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D2-JT2 <2 ms> P-D2-CKA <14 ms> P-D1-BTC",
+                "P-D2-JT2 <34 ms> P-D7-MDO <1 ms> P-D7-PNK"
+            ],
+            "bds": 1,
+            "btc": "",
+            "jt2": "",
+            "pnk": "",
+            "grandTotal": 1
+        },
+        {
+            "key": "16",
+            "no": 16,
+            "ebr": "EBR DAGO.1",
+            "peTransit": "PE2-D3-LBG-TRANSIT",
+            "paths": [
+                "P-D3-LBG <1 ms> P-D3-CCD <2 ms> P-D2-JT2",
+                "P-D3-LBG <4 ms> P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D3-LBG <4 ms> P-D2-CKA <13 ms> P-D1-BTC <2 ms> P-D1-BDS",
+                "P-D3-LBG <4 ms> P-D2-CKA <16 ms> P-D5-RKT <15 ms> P-D7-BAL <18 ms> P-D7-PNK"
+            ],
+            "bds": 1.5,
+            "btc": 1.5,
+            "jt2": "",
+            "pnk": 1.5,
+            "grandTotal": 1.5
+        },
+        {
+            "key": "17",
+            "no": 17,
+            "ebr": "EBR DAGO.2",
+            "peTransit": "PE2-D3-CCD-TRANSIT",
+            "paths": [
+                "P-D3-CCD <2 ms> P-D2-JT2",
+                "P-D3-CCD <2 ms> P-D2-JT2 <2 ms> P-D2-CKA <13 ms> P-D1-BTC",
+                "P-D3-CCD <2 ms> P-D2-JT2 <2 ms> P-D2-CKA <13 ms> P-D1-BTC <3 ms> P-D1-BDS",
+                "P-D3-CCD <2 ms> P-D2-JT2 <34 ms> P-D7-MDO <2 ms> P-D7-PNK"
+            ],
+            "bds": 1,
+            "btc": 1,
+            "jt2": "",
+            "pnk": 1,
+            "grandTotal": 1
+        },
+        {
+            "key": "18",
+            "no": 18,
+            "ebr": "EBR DLD.1",
+            "peTransit": "PE-D1-PGC-TRANSIT",
+            "paths": [
+                "P-D1-PGC <8 ms> P-D1-BTC",
+                "P-D1-PGC <8 ms> P-D1-BTC <2 ms> P-D1-BDS",
+                "P-D1-PGC <8 ms> P-D1-BTC <37 ms> P-D7-MDO <1 ms> P-D7-PNK"
+            ],
+            "bds": 2.5,
+            "btc": 2.5,
+            "jt2": "",
+            "pnk": 2.5,
+            "grandTotal": 2.5
+        },
+        {
+            "key": "19",
+            "no": 19,
+            "ebr": "EBR DLD.2",
+            "peTransit": "PE-D1-TLK-TRANSIT",
+            "paths": [
+                "P-D1-PGC <8 ms> P-D2-JT2",
+                "P-D1-TLK <1 ms> P-D1-PGC <8 ms> P-D1-BTC",
+                "P-D1-TLK <1 ms> P-D1-PGC <8 ms> P-D1-BTC <1 ms> P-D1-BDS",
+                "P-D1-TLK <1 ms> P-D1-PGC <8 ms> P-D1-BTC <37 ms> P-D7-MDO <1 ms> P-D7-PNK"
+            ],
+            "bds": 2.5,
+            "btc": 2.5,
+            "jt2": 1,
+            "pnk": "",
+            "grandTotal": 1
+        },
+        {
+            "key": "20",
+            "no": 20,
+            "ebr": "EBR Gayungan.1",
+            "peTransit": "PE2-D5-RKT-TRANSIT",
+            "paths": [
+                "P-D5-RKT <1 ms> P-D5-KBL <20 ms> P-D1-BTC <2 ms> P-D1-BDS",
+                "P-D5-RKT <2 ms> P-D5-KBL <19 ms> P-D1-BTC",
+                "P-D5-RKT <2 ms> P-D5-KBL <25 ms> P-D7-MDO <1 ms> P-D7-PNK",
+                "P-D5-RKT <4 ms> P-D5-KBL <11 ms> P-D2-JT2"
+            ],
+            "bds": 3.5,
+            "btc": 3.5,
+            "jt2": "",
+            "pnk": 3.5,
+            "grandTotal": 3.5
+        },
+        {
+            "key": "21",
+            "no": 21,
+            "ebr": "EBR Gayungan.2",
+            "peTransit": "PE4-D5-KBL-TRANSIT",
+            "paths": [
+                "P-D5-KBL <11 ms> P-D2-JT2",
+                "P-D5-KBL <19 ms> P-D1-BTC",
+                "P-D5-KBL <19 ms> P-D1-BTC <2 ms> P-D1-BDS"
+            ],
+            "bds": 1,
+            "btc": 1,
+            "jt2": "",
+            "pnk": "",
+            "grandTotal": 1
+        }
+    ]
+}

@@ -1,31 +1,61 @@
 interface GatewayCardProps {
-    name: string;
-    percentage: number;
-    color: string;
+  name: string;
+  percentage: number;
+  color: string;
+  maintainLink?: number;
+  degradeLink?: number;
+  improveLink?: number;
 }
 
-export function GatewayCard({ name, percentage, color }: GatewayCardProps) {
-    return (
-        <div className="bg-gray-50 rounded-lg p-2">
-            <div className="flex items-center justify-between mb-1">
-                <span className="text-xs">
-                    IGW <span style={{ color }} className="font-bold">{name}</span>
-                </span>
-                <span className="text-xs font-bold" style={{ color }}>
-                    {percentage}%
-                </span>
-            </div>
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                    className="h-full rounded-full"
-                    style={{ width: `${percentage}%`, backgroundColor: color }}
-                />
-            </div>
-            <div className="flex justify-between text-[10px] text-gray-500 mt-1">
-                <span>65 Link</span>
-                <span>14 Link</span>
-                <span>0 Link</span>
-            </div>
+export function GatewayCard({
+  name,
+  percentage,
+  maintainLink = 65,
+  degradeLink = 14,
+  improveLink = 0,
+}: GatewayCardProps) {
+  return (
+    <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+      <div className="flex items-center gap-3">
+        {/* IGW Name */}
+        <div className="w-16 text-sm font-medium">
+          <span className="text-gray-600">IGW </span>
+          <span className="text-[#00838f] font-bold underline decoration-2">
+            {name}
+          </span>
         </div>
-    );
+
+        {/* Colored boxes */}
+        <div className="flex gap-1.5 flex-1">
+          {/* Green box - Maintain with percentage */}
+          <div
+            className="flex-1 bg-gradient-to-br from-[#22c55e] to-[#16a34a] rounded-lg flex flex-col items-center justify-center py-2 px-3"
+          >
+            <span className="text-white text-lg font-bold leading-tight">
+              {percentage}%
+            </span>
+            <span className="text-white text-xs font-medium underline">
+              {maintainLink} Link
+            </span>
+          </div>
+
+          {/* Red box - Degrade */}
+          <div className="bg-[#be185d] rounded-lg flex flex-col items-center justify-center py-2 px-4">
+            <span className="text-white text-sm font-bold underline">
+              {degradeLink}
+            </span>
+            <span className="text-white text-xs">Link</span>
+          </div>
+
+          {/* Blue box - Improve */}
+          <div className="bg-[#0ea5e9] rounded-lg flex flex-col items-center justify-center py-2 px-4">
+            <span className="text-white text-sm font-bold underline">
+              {improveLink}
+            </span>
+            <span className="text-white text-xs">Link</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

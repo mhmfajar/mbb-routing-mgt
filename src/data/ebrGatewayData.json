@@ -1,0 +1,422 @@
+{
+    "territories": [
+        {
+            "id": 1,
+            "name": "TERRITORY 1",
+            "chartName": "01-SUMBAGUT",
+            "entries": [
+                {
+                    "no": 1,
+                    "ebr": "EBR Amir Hamzah.1",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 11.72
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 11.24
+                    },
+                    "pnk": {
+                        "ref": 53,
+                        "lat": 46.85
+                    }
+                },
+                {
+                    "no": 2,
+                    "ebr": "EBR Amir Hamzah.2",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 11.25
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 12.08
+                    },
+                    "pnk": {
+                        "ref": 53,
+                        "lat": 46.06
+                    }
+                },
+                {
+                    "no": 3,
+                    "ebr": "EBR Batam.1",
+                    "bds": {
+                        "ref": 4,
+                        "lat": 0.97
+                    },
+                    "btc": {
+                        "ref": 4,
+                        "lat": 1.47
+                    },
+                    "pnk": {
+                        "ref": 43,
+                        "lat": 30.32
+                    }
+                },
+                {
+                    "no": 4,
+                    "ebr": "EBR Batam.2",
+                    "bds": {
+                        "ref": 4,
+                        "lat": 1.18
+                    },
+                    "btc": {
+                        "ref": 4,
+                        "lat": 0.97
+                    },
+                    "pnk": {
+                        "ref": 43,
+                        "lat": 35.73
+                    }
+                },
+                {
+                    "no": 5,
+                    "ebr": "EBR DLD.1",
+                    "bds": {
+                        "ref": 13,
+                        "lat": 9.4
+                    },
+                    "btc": {
+                        "ref": 13,
+                        "lat": 9.68
+                    },
+                    "pnk": {
+                        "ref": 48,
+                        "lat": 43.98
+                    }
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "TERRITORY 2",
+            "chartName": "02-SUMBAGSEL",
+            "entries": [
+                {
+                    "no": 1,
+                    "ebr": "EBR BSD.1",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 13.25
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 12.52
+                    },
+                    "pnk": {
+                        "ref": 38,
+                        "lat": 32.93
+                    }
+                },
+                {
+                    "no": 2,
+                    "ebr": "EBR BSD.2",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 13.37
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 13.33
+                    },
+                    "pnk": {
+                        "ref": 43,
+                        "lat": 33.47
+                    }
+                },
+                {
+                    "no": 3,
+                    "ebr": "EBR Buaran.1",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 13
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 12.14
+                    },
+                    "pnk": {
+                        "ref": 43,
+                        "lat": 34.55
+                    }
+                },
+                {
+                    "no": 4,
+                    "ebr": "EBR Buaran.2",
+                    "bds": {
+                        "ref": 18,
+                        "lat": 12.27
+                    },
+                    "btc": {
+                        "ref": 18,
+                        "lat": 12.54
+                    },
+                    "pnk": {
+                        "ref": 43,
+                        "lat": 34.98
+                    }
+                },
+                {
+                    "no": 5,
+                    "ebr": "EBR CBN.1",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 15.92
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 15.52
+                    },
+                    "pnk": {
+                        "ref": 48,
+                        "lat": 45.22
+                    }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "TERRITORY 3",
+            "chartName": "10-SUMBAGTENG",
+            "entries": [
+                {
+                    "no": 1,
+                    "ebr": "EBR Gayungan.1",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 19.07
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 18.82
+                    },
+                    "pnk": {
+                        "ref": 28,
+                        "lat": 24.72
+                    }
+                },
+                {
+                    "no": 2,
+                    "ebr": "EBR Gayungan.2",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 18.97
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 18.91
+                    },
+                    "pnk": {
+                        "ref": 33,
+                        "lat": 24.7
+                    }
+                },
+                {
+                    "no": 3,
+                    "ebr": "EBR HRM.1",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 19.24
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 18.98
+                    },
+                    "pnk": {
+                        "ref": 28,
+                        "lat": 24.31
+                    }
+                },
+                {
+                    "no": 4,
+                    "ebr": "EBR HRM.2",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 18.83
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 18.89
+                    },
+                    "pnk": {
+                        "ref": 38,
+                        "lat": 31.39
+                    }
+                },
+                {
+                    "no": 5,
+                    "ebr": "EBR KBU.1",
+                    "bds": {
+                        "ref": 28,
+                        "lat": 21.52
+                    },
+                    "btc": {
+                        "ref": 28,
+                        "lat": 21.21
+                    },
+                    "pnk": {
+                        "ref": 33,
+                        "lat": 28.4
+                    }
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "TERRITORY 4",
+            "chartName": "03-JABOTABEK INNER",
+            "entries": [
+                {
+                    "no": 1,
+                    "ebr": "EBR AB.1",
+                    "bds": {
+                        "ref": 48,
+                        "lat": 49.35,
+                        "status": "warning"
+                    },
+                    "btc": {
+                        "ref": 48,
+                        "lat": 47.65
+                    },
+                    "pnk": {
+                        "ref": 18,
+                        "lat": 11.92
+                    }
+                },
+                {
+                    "no": 2,
+                    "ebr": "EBR AB.2",
+                    "bds": {
+                        "ref": 53,
+                        "lat": 48.31,
+                        "status": "warning"
+                    },
+                    "btc": {
+                        "ref": 53,
+                        "lat": 46.65
+                    },
+                    "pnk": {
+                        "ref": 28,
+                        "lat": 24.98
+                    }
+                },
+                {
+                    "no": 3,
+                    "ebr": "EBR BJB.1",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 29.15,
+                        "status": "warning"
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 28.84,
+                        "status": "warning"
+                    },
+                    "pnk": {
+                        "ref": 23,
+                        "lat": 21.65
+                    }
+                },
+                {
+                    "no": 4,
+                    "ebr": "EBR BJB.2",
+                    "bds": {
+                        "ref": 23,
+                        "lat": 32.31,
+                        "status": "danger"
+                    },
+                    "btc": {
+                        "ref": 23,
+                        "lat": 31.51,
+                        "status": "danger"
+                    },
+                    "pnk": {
+                        "ref": 18,
+                        "lat": 14.04
+                    }
+                },
+                {
+                    "no": 5,
+                    "ebr": "EBR BPP.1",
+                    "bds": {
+                        "ref": 28,
+                        "lat": 36.12,
+                        "status": "danger"
+                    },
+                    "btc": {
+                        "ref": 28,
+                        "lat": 36.13,
+                        "status": "danger"
+                    },
+                    "pnk": {
+                        "ref": 18,
+                        "lat": 14.17
+                    }
+                }
+            ]
+        }
+    ],
+    "hourlyCharts": [
+        {
+            "id": "01",
+            "name": "01-SUMBAGUT",
+            "region": "sumatra"
+        },
+        {
+            "id": "02",
+            "name": "02-SUMBAGSEL",
+            "region": "sumatra"
+        },
+        {
+            "id": "10",
+            "name": "10-SUMBAGTENG",
+            "region": "sumatra"
+        },
+        {
+            "id": "03",
+            "name": "03-JABOTABEK INNER",
+            "region": "java"
+        },
+        {
+            "id": "12",
+            "name": "12-JABOTABEK OUTER",
+            "region": "java"
+        },
+        {
+            "id": "04",
+            "name": "04-JAWA BARAT",
+            "region": "java"
+        },
+        {
+            "id": "05",
+            "name": "05-JAWA TENGAH",
+            "region": "java"
+        },
+        {
+            "id": "06",
+            "name": "06-JAWA TIMUR",
+            "region": "java"
+        },
+        {
+            "id": "07",
+            "name": "07-BALINUSRA",
+            "region": "bali"
+        },
+        {
+            "id": "08",
+            "name": "08-KALIMANTAN",
+            "region": "kalimantan"
+        },
+        {
+            "id": "09",
+            "name": "09-SULAWESI",
+            "region": "sulawesi"
+        },
+        {
+            "id": "11",
+            "name": "11-PUMA",
+            "region": "papua"
+        }
+    ]
+}
