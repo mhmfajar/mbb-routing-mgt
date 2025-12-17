@@ -13,9 +13,9 @@ import "./Home.css";
 type TabId = "cti-routing" | "routing-on-demand";
 
 const INITIAL_VIEW: ViewState = {
-  longitude: 117.5,
-  latitude: -2.5,
-  zoom: 4.5,
+  longitude: 117.969,
+  latitude: -2.494,
+  zoom: 4.45,
   pitch: 0,
   bearing: 0,
 };

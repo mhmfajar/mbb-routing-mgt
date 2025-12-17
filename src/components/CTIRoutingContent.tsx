@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Map, { Marker } from "react-map-gl/mapbox";
+import React, { useEffect, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
 import { Button } from "antd";
 import { FilterOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
 import ReactECharts from "echarts-for-react";
@@ -8,6 +8,8 @@ import { config } from "~/config";
 import { GatewayCard, NetworkNodeLarge } from "~/components";
 import ebrGatewayData from "~/data/ebrGatewayData.json";
 import routerMapIcon from "~/assets/router-1-map.webp";
+
+const MAP_STYLE_URL = "mapbox://styles/mhmfajar/cmj9bkmus002m01sa35ty1178";
 
 // EBR Locations data from the table with offsets for overlapping markers
 const ebrLocations = [
@@ -887,7 +889,80 @@ function EBRGatewaySlide({ onBack }: { onBack: () => void }) {
 
 // Main CTI Routing Content
 export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [slideIndex, setSlideIndex] = useState(0);
+
+  // Initialize the Mapbox map once
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    mapboxgl.accessToken = config.mapbox.accessToken;
+
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: MAP_STYLE_URL,
+      center: [viewState.longitude, viewState.latitude],
+      zoom: viewState.zoom,
+      pitch: viewState.pitch,
+      bearing: viewState.bearing,
+      interactive: false,
+      attributionControl: false,
+      projection: "mercator",
+    });
+
+    const handleLoad = () => {
+      markersRef.current = ebrLocations.map((location) => {
+        const markerEl = document.createElement("div");
+        markerEl.className = "flex flex-col items-center";
+
+        const imgEl = document.createElement("img");
+        imgEl.src = routerMapIcon;
+        imgEl.alt = location.pe_code;
+        imgEl.className = "w-12 h-12 object-contain";
+        markerEl.appendChild(imgEl);
+
+        const labelEl = document.createElement("span");
+        labelEl.className =
+          "text-[10px] font-bold text-[#00838f] bg-white px-1.5 py-0.5 rounded shadow -mt-2";
+        labelEl.textContent = location.pe_code;
+        markerEl.appendChild(labelEl);
+
+        return new mapboxgl.Marker({
+          element: markerEl,
+          anchor: "center",
+          offset: location.offset as [number, number],
+        })
+          .setLngLat([location.lon, location.lat])
+          .addTo(map);
+      });
+    };
+
+    map.on("load", handleLoad);
+    mapRef.current = map;
+
+    return () => {
+      map.off("load", handleLoad);
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [viewState]);
+
+  // Keep the map view in sync with the provided viewState
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.jumpTo({
+      center: [viewState.longitude, viewState.latitude],
+      zoom: viewState.zoom,
+      pitch: viewState.pitch,
+      bearing: viewState.bearing,
+    });
+  }, [viewState]);
 
   // Slide 2 - EBR to Gateway
   if (slideIndex === 1) {
@@ -1202,44 +1277,11 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
 
           {/* Map with Indonesia Territory Overlay */}
           <div className="flex-1 relative">
-            <Map
-              {...viewState}
-              // Remove onMove to prevent updating viewState
-              mapboxAccessToken={config.mapbox.accessToken}
-              style={{ width: "100%", height: "100%", background: "#c5e8f0" }}
-              mapStyle="mapbox://styles/mapbox/light-v11"
-              attributionControl={false}
-              projection={{ name: "mercator" }}
-              dragPan={false}
-              dragRotate={false}
-              scrollZoom={false}
-              doubleClickZoom={false}
-              touchZoomRotate={false}
-              keyboard={false}
-              interactive={false}
-            >
-              {/* EBR Location Markers with offset */}
-              {ebrLocations.map((location) => (
-                <Marker
-                  key={location.pe_code}
-                  longitude={location.lon}
-                  latitude={location.lat}
-                  anchor="center"
-                  offset={location.offset as [number, number]}
-                >
-                  <div className="flex flex-col items-center">
-                    <img
-                      src={routerMapIcon}
-                      alt={location.pe_code}
-                      className="w-12 h-12 object-contain"
-                    />
-                    <span className="text-[10px] font-bold text-[#00838f] bg-white px-1.5 py-0.5 rounded shadow -mt-2">
-                      {location.pe_code}
-                    </span>
-                  </div>
-                </Marker>
-              ))}
-            </Map>
+            <div
+              ref={mapContainerRef}
+              className="absolute inset-0"
+              style={{ width: "100%", height: "100%" }}
+            />
 
             {/* Territory Marker */}
             {/* <div className="absolute bottom-20 left-1/4 bg-white rounded-lg shadow-lg p-2 text-xs">
