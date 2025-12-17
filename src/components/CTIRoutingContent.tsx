@@ -894,9 +894,9 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [slideIndex, setSlideIndex] = useState(0);
 
-  // Initialize the Mapbox map once
+  // Initialize the Mapbox map when the slide shows the map
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || mapRef.current || slideIndex !== 0) return;
 
     mapboxgl.accessToken = config.mapbox.accessToken;
 
@@ -949,7 +949,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
       map.remove();
       mapRef.current = null;
     };
-  }, [viewState]);
+  }, [viewState, slideIndex]);
 
   // Keep the map view in sync with the provided viewState
   useEffect(() => {
