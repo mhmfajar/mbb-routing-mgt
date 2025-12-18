@@ -15,7 +15,7 @@ type TabId = "cti-routing" | "routing-on-demand";
 const INITIAL_VIEW: ViewState = {
   longitude: 117.969,
   latitude: -2.494,
-  zoom: 4.45,
+  zoom: 4.275,
   pitch: 0,
   bearing: 0,
 };
@@ -51,7 +51,7 @@ export default function Home() {
     <ConfigProvider theme={antTheme}>
       <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
         {/* Header */}
-        <header className="px-4 pt-5 flex items-center justify-between gradient-border-b h-[62px]">
+        <header className="px-4 pt-5 flex items-center justify-between gradient-border-b h-[62px] relative z-20 bg-[#f2f2f2]">
           {/* Tabs - Only labels, no children */}
           <Tabs
             activeKey={activeTab}

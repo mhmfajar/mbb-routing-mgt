@@ -421,6 +421,63 @@ const ebrLocations = [
   },
 ];
 
+const EBR_CONNECTIONS_SOURCE_ID = "ebr-connections";
+const EBR_CONNECTIONS_LAYER_ID = "ebr-connections-line";
+const EBR_CONNECTIONS: Array<{
+  from: string;
+  to: string;
+  bulge?: "north" | "south" | "auto";
+  bowFactor?: number;
+  segments?: number;
+}> = [
+  // Only connect this pair for now
+  { from: "MDC", to: "PUB", bulge: "north", bowFactor: 1.2, segments: 256 },
+];
+
+// Territory definitions for navigation
+const TERRITORIES = [
+  {
+    id: 1,
+    name: "Territory 1",
+    region: "Sumatra",
+    center: { lng: 101.5, lat: 0.5 },
+    zoom: 5.5,
+    ebrCount: 18,
+    linkToGw: 72,
+    color: "#f5c842", // Gold/Yellow
+  },
+  {
+    id: 2,
+    name: "Territory 2",
+    region: "Banten - Jawa Tengah",
+    center: { lng: 107.5, lat: -6.8 },
+    zoom: 7,
+    ebrCount: 22,
+    linkToGw: 88,
+    color: "#f97316", // Orange
+  },
+  {
+    id: 3,
+    name: "Territory 3",
+    region: "Jawa Timur - NTT",
+    center: { lng: 115, lat: -8.2 },
+    zoom: 6,
+    ebrCount: 28,
+    linkToGw: 122,
+    color: "#a855f7", // Purple
+  },
+  {
+    id: 4,
+    name: "Territory 4",
+    region: "Kalimantan - Papua",
+    center: { lng: 125, lat: -2 },
+    zoom: 4.5,
+    ebrCount: 20,
+    linkToGw: 80,
+    color: "#00838f", // Teal
+  },
+];
+
 // View state type
 export interface ViewState {
   longitude: number;
@@ -433,6 +490,105 @@ export interface ViewState {
 interface CTIRoutingContentProps {
   viewState: ViewState;
   setViewState: (v: ViewState) => void;
+}
+
+type EbrConnectionProperties = { from: string; to: string };
+type EbrConnectionFeature = GeoJSON.Feature<
+  GeoJSON.LineString,
+  EbrConnectionProperties
+>;
+
+function buildEbrConnectionsGeoJson(): GeoJSON.FeatureCollection<
+  GeoJSON.LineString,
+  EbrConnectionProperties
+> {
+  const features: EbrConnectionFeature[] = [];
+
+  for (const conn of EBR_CONNECTIONS) {
+    const { from, to } = conn;
+    const fromLocation = ebrLocations.find((l) => l.pe_code === from);
+    const toLocation = ebrLocations.find((l) => l.pe_code === to);
+    if (!fromLocation || !toLocation) continue;
+
+    const coordinates = curveBetweenPoints(
+      [fromLocation.lon, fromLocation.lat],
+      [toLocation.lon, toLocation.lat],
+      {
+        segments: conn.segments ?? 256,
+        bowFactor: conn.bowFactor ?? 1.2,
+        bulge: conn.bulge ?? "north",
+      }
+    );
+
+    features.push({
+      type: "Feature",
+      properties: { from, to },
+      geometry: { type: "LineString", coordinates },
+    });
+  }
+
+  return {
+    type: "FeatureCollection",
+    features,
+  };
+}
+
+function curveBetweenPoints(
+  from: [number, number],
+  to: [number, number],
+  options?: {
+    segments?: number;
+    bowFactor?: number;
+    bulge?: "north" | "south" | "auto";
+  }
+) {
+  const clampedSegments = Math.max(64, Math.floor(options?.segments ?? 256));
+  const bowFactor = options?.bowFactor ?? 1.2;
+  const bulge = options?.bulge ?? "north";
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const distance = Math.hypot(dx, dy);
+
+  if (!Number.isFinite(distance) || distance === 0) return [from, to];
+
+  const midX = (from[0] + to[0]) / 2;
+  const midY = (from[1] + to[1]) / 2;
+
+  const perpX = -dy / distance;
+  const perpY = dx / distance;
+
+  const bow = distance * bowFactor;
+  const controlA: [number, number] = [midX + perpX * bow, midY + perpY * bow];
+  const controlB: [number, number] = [midX - perpX * bow, midY - perpY * bow];
+
+  const control: [number, number] =
+    bulge === "auto"
+      ? controlA
+      : bulge === "north"
+      ? controlA[1] >= controlB[1]
+        ? controlA
+        : controlB
+      : controlA[1] <= controlB[1]
+      ? controlA
+      : controlB;
+
+  const coordinates: Array<[number, number]> = [];
+  for (let i = 0; i <= clampedSegments; i++) {
+    const t = i / clampedSegments;
+    const oneMinusT = 1 - t;
+    const x =
+      oneMinusT * oneMinusT * from[0] +
+      2 * oneMinusT * t * control[0] +
+      t * t * to[0];
+    const y =
+      oneMinusT * oneMinusT * from[1] +
+      2 * oneMinusT * t * control[1] +
+      t * t * to[1];
+
+    coordinates.push([x, y]);
+  }
+
+  return coordinates;
 }
 
 // Helper to get latency cell color
@@ -893,14 +1049,48 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
+  const [selectedTerritory, setSelectedTerritory] = useState<number | null>(
+    null
+  );
+
+  // Function to zoom to a territory
+  const zoomToTerritory = (territoryId: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const territory = TERRITORIES.find((t) => t.id === territoryId);
+    if (!territory) return;
+
+    setSelectedTerritory(territoryId);
+    map.flyTo({
+      center: [territory.center.lng, territory.center.lat],
+      zoom: territory.zoom,
+      duration: 1500,
+      essential: true,
+    });
+  };
+
+  // Function to reset to default view
+  const resetView = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    setSelectedTerritory(null);
+    map.flyTo({
+      center: [viewState.longitude, viewState.latitude],
+      zoom: viewState.zoom,
+      duration: 1500,
+      essential: true,
+    });
+  };
 
   // Initialize the Mapbox map when the slide shows the map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || slideIndex !== 0) return;
 
-    mapboxgl.accessToken = config.mapbox.accessToken;
-
     const map = new mapboxgl.Map({
+      accessToken: config.mapbox.accessToken,
       container: mapContainerRef.current,
       style: MAP_STYLE_URL,
       center: [viewState.longitude, viewState.latitude],
@@ -913,9 +1103,89 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
     });
 
     const handleLoad = () => {
+      // Connected line between markers (polyline)
+      if (!map.getSource(EBR_CONNECTIONS_SOURCE_ID)) {
+        map.addSource(EBR_CONNECTIONS_SOURCE_ID, {
+          type: "geojson",
+          data: buildEbrConnectionsGeoJson(),
+        });
+      }
+
+      if (!map.getLayer(EBR_CONNECTIONS_LAYER_ID)) {
+        map.addLayer({
+          id: EBR_CONNECTIONS_LAYER_ID,
+          type: "line",
+          source: EBR_CONNECTIONS_SOURCE_ID,
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#002060",
+            "line-width": 2,
+            "line-opacity": 0.65,
+            "line-blur": 0.8,
+          },
+        });
+      }
+
+      // Hide all countries except Indonesia
+      if (!map.getLayer("country-mask")) {
+        map.addSource("country-boundaries", {
+          type: "vector",
+          url: "mapbox://mapbox.country-boundaries-v1",
+        });
+
+        map.addLayer(
+          {
+            id: "country-mask",
+            type: "fill",
+            source: "country-boundaries",
+            "source-layer": "country_boundaries",
+            filter: ["!=", ["get", "iso_3166_1"], "ID"],
+            paint: {
+              "fill-color": "#f2f2f2",
+              "fill-opacity": 1,
+            },
+          },
+          EBR_CONNECTIONS_LAYER_ID
+        );
+
+        // Hide country border lines (admin-0) but keep province borders (admin-1)
+        const style = map.getStyle();
+        if (style?.layers) {
+          for (const layer of style.layers) {
+            // Hide country borders
+            if (
+              layer.id.includes("admin") &&
+              layer.id.includes("0") &&
+              layer.id.includes("boundary") &&
+              layer.type === "line"
+            ) {
+              map.setPaintProperty(layer.id, "line-color", "#f2f2f2");
+              map.setPaintProperty(layer.id, "line-opacity", 0);
+            }
+          }
+        }
+
+        // Wait for country-boundaries source to load before showing map
+        const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
+          if (
+            e.sourceId === "country-boundaries" &&
+            e.isSourceLoaded &&
+            map.isSourceLoaded("country-boundaries")
+          ) {
+            setMapReady(true);
+            map.off("sourcedata", onSourceData);
+          }
+        };
+        map.on("sourcedata", onSourceData);
+      }
+
       markersRef.current = ebrLocations.map((location) => {
         const markerEl = document.createElement("div");
         markerEl.className = "flex flex-col items-center";
+        markerEl.style.cursor = "pointer";
 
         const imgEl = document.createElement("img");
         imgEl.src = routerMapIcon;
@@ -927,12 +1197,21 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
         labelEl.className =
           "text-[10px] font-bold text-[#00838f] bg-white px-1.5 py-0.5 rounded shadow -mt-2";
         labelEl.textContent = location.pe_code;
+        labelEl.style.opacity = "0";
+        labelEl.style.transition = "opacity 120ms ease";
         markerEl.appendChild(labelEl);
+
+        markerEl.addEventListener("mouseenter", () => {
+          labelEl.style.opacity = "1";
+        });
+        markerEl.addEventListener("mouseleave", () => {
+          labelEl.style.opacity = "0";
+        });
 
         return new mapboxgl.Marker({
           element: markerEl,
           anchor: "center",
-          offset: location.offset as [number, number],
+          offset: [0, 0],
         })
           .setLngLat([location.lon, location.lat])
           .addTo(map);
@@ -972,7 +1251,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
   return (
     <>
       {/* Filter Bar */}
-      <div className="px-4 py-2 flex items-center gap-6 border-b border-gray-200">
+      <div className="px-4 py-2 flex items-center gap-6 border-b border-gray-200 relative z-10 bg-[#f5f5f5]">
         <div className="flex items-center gap-2 text-sm bg-white px-4 py-1.5 rounded-lg">
           <span className="font-bold text-[#00838f]">Date:</span>
           <span className="text-gray-700">8-12-2025</span>
@@ -1003,7 +1282,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
       {/* Main Content */}
       <div className="flex-1 flex">
         {/* Left Sidebar */}
-        <div className="w-80 border-r border-gray-200 p-4 flex flex-col gap-4">
+        <div className="w-80 border-r border-gray-200 p-4 flex flex-col gap-4 relative z-10 bg-[#f5f5f5]">
           {/* Nation Wide Stats */}
           <div>
             <h3 className="text-[#00838f] font-bold text-lg mb-2 text-center border-b-2 border-[#002060] pb-2">
@@ -1144,7 +1423,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
         {/* Map Area */}
         <div className="flex-1 flex flex-col">
           {/* Link Route CTI Header */}
-          <div className="bg-white border-b border-gray-200 p-4">
+          <div className="bg-white border-b border-gray-200 p-4 relative z-10">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[#00838f] font-bold text-sm">
                 LINK ROUTE CTI
@@ -1279,20 +1558,67 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
           <div className="flex-1 relative">
             <div
               ref={mapContainerRef}
-              className="absolute inset-0"
+              className={`absolute inset-0 transition-opacity duration-600 ${
+                mapReady ? "opacity-100" : "opacity-0"
+              }`}
               style={{ width: "100%", height: "100%" }}
             />
 
-            {/* Territory Marker */}
-            {/* <div className="absolute bottom-20 left-1/4 bg-white rounded-lg shadow-lg p-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-[#00838f] font-bold">TERRITORY 1</span>
-                <span className="bg-green-500 text-white px-1 rounded text-[10px]">
-                  100%
-                </span>
+            {/* Territory Navigation */}
+            <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-50">
+              {/* Reset View Button */}
+              {selectedTerritory !== null && (
+                <button
+                  onClick={resetView}
+                  className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md text-xs font-semibold text-gray-600 hover:bg-white transition-all flex items-center gap-2"
+                >
+                  <span>←</span> Reset View
+                </button>
+              )}
+
+              {/* Territory Buttons - 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                {TERRITORIES.map((territory) => (
+                  <button
+                    key={territory.id}
+                    onClick={() => zoomToTerritory(territory.id)}
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg shadow-md transition-all backdrop-blur-sm ${
+                      selectedTerritory === territory.id
+                        ? "ring-2 ring-offset-1"
+                        : "hover:scale-102 hover:shadow-lg"
+                    }`}
+                    style={
+                      {
+                        backgroundColor:
+                          selectedTerritory === territory.id
+                            ? territory.color
+                            : "rgba(255,255,255,0.95)",
+                        color:
+                          selectedTerritory === territory.id ? "white" : "#333",
+                        "--tw-ring-color": territory.color,
+                        outlineColor: territory.color,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span className="text-xs font-bold">{territory.name}</span>
+                    <div
+                      className="flex items-center gap-1 px-2 py-0.5 rounded text-white text-xs font-bold"
+                      style={{
+                        backgroundColor:
+                          selectedTerritory === territory.id
+                            ? "rgba(255,255,255,0.25)"
+                            : territory.color,
+                      }}
+                    >
+                      <span>{territory.ebrCount}</span>
+                      <span className="text-[9px] font-medium opacity-90">
+                        EBR
+                      </span>
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div className="text-yellow-600 font-bold">18 EBR</div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>
