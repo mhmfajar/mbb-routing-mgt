@@ -76,6 +76,26 @@ interface TrendEbrToGwResponse {
   data: DataContent;
 }
 
+// EBR Gateway data types (for state lifting)
+interface EBRGatewayEntry {
+  territory: string;
+  bds: { ref: string; lat: string; status: string };
+  btc: { ref: string; lat: string; status: string };
+  pnk: { ref: string; lat: string; status: string };
+}
+
+interface EBRGatewayChartData {
+  regionName: string;
+  data: Record<string, DataSeries>;
+}
+
+interface EBRGatewayTerritoryData {
+  name: string;
+  entries: EBRGatewayEntry[];
+  chart: EBRGatewayChartData[];
+  subtitle: string;
+}
+
 type MiniChartProps = {
   chartData: Record<string, DataSeries>;
   height: number;
@@ -553,189 +573,17 @@ function getLatencyColor(status: string): string {
 // EBR to Gateway Slide (Slide 2)
 function EBRGatewaySlide({
   onBack,
-  filterDate,
-  filterHour,
+  data,
+  loading,
 }: {
   onBack: () => void;
-  filterDate: dayjs.Dayjs;
-  filterHour: dayjs.Dayjs;
+  data: EBRGatewayTerritoryData[];
+  loading: boolean;
 }) {
   const headerGridCols = "20px 198px 80px 80px 80px 80px 80px 80px";
   const gridCols = "20px 190px 80px 80px 80px 80px 80px 80px";
   const borderStyle = "border-r-2 border-dashed border-gray-400";
   const borderChildStyle = "border-r-2 border-dashed border-gray-300";
-
-  const [data, setData] = useState<
-    {
-      name: string;
-      entries: {
-        territory: string;
-        bds: {
-          ref: string;
-          lat: string;
-          status: string;
-        };
-        btc: {
-          ref: string;
-          lat: string;
-          status: string;
-        };
-        pnk: {
-          ref: string;
-          lat: string;
-          status: string;
-        };
-      }[];
-      chart: {
-        regionName: string;
-        data: Record<string, DataSeries>;
-      }[];
-      subtitle: string;
-    }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch data from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // Use filter date and hour from state
-        const date = filterDate.format("YYYY-MM-DD");
-        const hour = filterHour.hour();
-
-        const responseCtiGateway: AxiosResponse<CtiGatewayResponse> =
-          await axios.get("/api/mbb-routing-mgt/ctiGateway", {
-            params: {
-              date,
-              hour,
-            },
-            timeout: config.api.timeout,
-            // Accept 500 status code to get response data even with server error
-            validateStatus: (status) => status < 600,
-          });
-
-        const responseEbrToGw: AxiosResponse<EBRTOGatewaysResponse> =
-          await axios.get("/executive/api/core/core.php", {
-            params: {
-              cmd: "ebr-to-gw",
-              date,
-              hour,
-            },
-            timeout: config.api.timeout,
-          });
-
-        const responseTrendEbrToGw: AxiosResponse<TrendEbrToGwResponse> =
-          await axios.get("/api/mbb-routing-mgt/trendEbrToGw", {
-            params: {
-              start_week: null,
-              end_week: null,
-              year: null,
-              verifier: "btc,bds,pnk,jt2",
-              type_summary: "reg_tsel",
-              region_tsel: "1,2,3,4,5,6,7,8,9,10,11,12",
-              type_data: "ebr",
-              parameter: "avg_latency",
-              period_type: "hourly",
-              start_date: date,
-              end_date: date,
-              start_hour: 0,
-              end_hour: hour,
-            },
-            timeout: config.api.timeout,
-          });
-
-        const ctiData = responseCtiGateway.data.message;
-        const bdsLookup = new Map(ctiData.BDS.map((e) => [e.hostname, e]));
-        const btcLookup = new Map(ctiData.BTC.map((e) => [e.hostname, e]));
-        const pnkLookup = new Map(ctiData.PNK.map((e) => [e.hostname, e]));
-
-        // Map territory keys to region keys from API
-        const territoryToRegion: Record<string, string[]> = {
-          "1": ["01-SUMBAGUT", "02-SUMBAGSEL", "10-SUMBAGTENG"],
-          "2": ["03-JABOTABEK INNER", "12-JABOTABEK OUTER", "04-JAWA BARAT"],
-          "3": ["05-JAWA TENGAH", "06-JAWA TIMUR", "07-BALINUSRA"],
-          "4": ["08-KALIMANTAN", "09-SULAWESI", "11-PUMA"],
-        };
-
-        setData(
-          Object.entries(responseEbrToGw.data.data.BDS).map(
-            ([key, value], idx) => {
-              // Get regions for this territory
-              const regionKeys = territoryToRegion[key] || [];
-              const chartSubtitle =
-                responseTrendEbrToGw.data.data.subtitle || "";
-
-              const chartData = regionKeys.map((regionKey) => {
-                const regionData = responseTrendEbrToGw.data.data[regionKey];
-                const chartSeriesData: Record<string, DataSeries> = {};
-
-                if (Array.isArray(regionData)) {
-                  regionData.forEach((series) => {
-                    // Type guard: ensure series is DataSeries object with 'name' property
-                    // Only include BDS, BTC, PNK series (exclude JT2, etc.)
-                    if (
-                      typeof series === "object" &&
-                      series !== null &&
-                      "name" in series &&
-                      (series.name.endsWith("- BDS") ||
-                        series.name.endsWith("- BTC") ||
-                        series.name.endsWith("- PNK"))
-                    ) {
-                      chartSeriesData[series.name] = series as DataSeries;
-                    }
-                  });
-                }
-
-                return {
-                  regionName: regionKey,
-                  data: chartSeriesData,
-                };
-              });
-
-              return {
-                name: territoryNames[idx] || `Territory ${key}`,
-                entries: value.map((entry) => {
-                  const bdsEntry = bdsLookup.get(entry.transit);
-                  const btcEntry = btcLookup.get(entry.transit);
-                  const pnkEntry = pnkLookup.get(entry.transit);
-
-                  return {
-                    territory: entry.transit,
-                    bds: {
-                      ref: (bdsEntry?.treshold ?? 0).toFixed(2),
-                      lat: (bdsEntry?.latency ?? 0).toFixed(2),
-                      status: bdsEntry?.status ?? "clear",
-                    },
-                    btc: {
-                      ref: (btcEntry?.treshold ?? 0).toFixed(2),
-                      lat: (btcEntry?.latency ?? 0).toFixed(2),
-                      status: btcEntry?.status ?? "clear",
-                    },
-                    pnk: {
-                      ref: (pnkEntry?.treshold ?? 0).toFixed(2),
-                      lat: (pnkEntry?.latency ?? 0).toFixed(2),
-                      status: pnkEntry?.status ?? "clear",
-                    },
-                  };
-                }),
-                chart: chartData,
-                subtitle: chartSubtitle,
-              };
-            }
-          )
-        );
-      } catch (err) {
-        console.error("Failed to fetch EBR Gateway data:", err);
-        setData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [filterDate, filterHour]);
 
   // Calculate responsive heights based on window height
   const territoriesCount = data.length || 4;
@@ -1017,6 +865,10 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
   const [filterDate, setFilterDate] = useState(dayjs());
   const [filterHour, setFilterHour] = useState(dayjs().startOf("hour"));
 
+  // EBR Gateway data state (lifted from EBRGatewaySlide)
+  const [ebrGatewayData, setEbrGatewayData] = useState<EBRGatewayTerritoryData[]>([]);
+  const [ebrGatewayLoading, setEbrGatewayLoading] = useState(true);
+
   // Function to zoom to a territory
   const zoomToTerritory = (territoryId: number) => {
     const map = mapRef.current;
@@ -1047,6 +899,131 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
       essential: true,
     });
   };
+
+  // Fetch EBR Gateway data (lifted from EBRGatewaySlide to prevent refetch on tab switch)
+  useEffect(() => {
+    const fetchEbrGatewayData = async () => {
+      try {
+        setEbrGatewayLoading(true);
+
+        const date = filterDate.format("YYYY-MM-DD");
+        const hour = filterHour.hour();
+
+        const responseCtiGateway: AxiosResponse<CtiGatewayResponse> =
+          await axios.get("/api/mbb-routing-mgt/ctiGateway", {
+            params: { date, hour },
+            timeout: config.api.timeout,
+            validateStatus: (status) => status < 600,
+          });
+
+        const responseEbrToGw: AxiosResponse<EBRTOGatewaysResponse> =
+          await axios.get("/executive/api/core/core.php", {
+            params: { cmd: "ebr-to-gw", date, hour },
+            timeout: config.api.timeout,
+          });
+
+        const responseTrendEbrToGw: AxiosResponse<TrendEbrToGwResponse> =
+          await axios.get("/api/mbb-routing-mgt/trendEbrToGw", {
+            params: {
+              start_week: null,
+              end_week: null,
+              year: null,
+              verifier: "btc,bds,pnk,jt2",
+              type_summary: "reg_tsel",
+              region_tsel: "1,2,3,4,5,6,7,8,9,10,11,12",
+              type_data: "ebr",
+              parameter: "avg_latency",
+              period_type: "hourly",
+              start_date: date,
+              end_date: date,
+              start_hour: 0,
+              end_hour: hour,
+            },
+            timeout: config.api.timeout,
+          });
+
+        const ctiData = responseCtiGateway.data.message;
+        const bdsLookup = new Map(ctiData.BDS.map((e) => [e.hostname, e]));
+        const btcLookup = new Map(ctiData.BTC.map((e) => [e.hostname, e]));
+        const pnkLookup = new Map(ctiData.PNK.map((e) => [e.hostname, e]));
+
+        const territoryToRegion: Record<string, string[]> = {
+          "1": ["01-SUMBAGUT", "02-SUMBAGSEL", "10-SUMBAGTENG"],
+          "2": ["03-JABOTABEK INNER", "12-JABOTABEK OUTER", "04-JAWA BARAT"],
+          "3": ["05-JAWA TENGAH", "06-JAWA TIMUR", "07-BALINUSRA"],
+          "4": ["08-KALIMANTAN", "09-SULAWESI", "11-PUMA"],
+        };
+
+        setEbrGatewayData(
+          Object.entries(responseEbrToGw.data.data.BDS).map(
+            ([key, value], idx) => {
+              const regionKeys = territoryToRegion[key] || [];
+              const chartSubtitle = responseTrendEbrToGw.data.data.subtitle || "";
+
+              const chartData = regionKeys.map((regionKey) => {
+                const regionData = responseTrendEbrToGw.data.data[regionKey];
+                const chartSeriesData: Record<string, DataSeries> = {};
+
+                if (Array.isArray(regionData)) {
+                  regionData.forEach((series) => {
+                    if (
+                      typeof series === "object" &&
+                      series !== null &&
+                      "name" in series &&
+                      (series.name.endsWith("- BDS") ||
+                        series.name.endsWith("- BTC") ||
+                        series.name.endsWith("- PNK"))
+                    ) {
+                      chartSeriesData[series.name] = series as DataSeries;
+                    }
+                  });
+                }
+
+                return { regionName: regionKey, data: chartSeriesData };
+              });
+
+              return {
+                name: territoryNames[idx] || `Territory ${key}`,
+                entries: value.map((entry) => {
+                  const bdsEntry = bdsLookup.get(entry.transit);
+                  const btcEntry = btcLookup.get(entry.transit);
+                  const pnkEntry = pnkLookup.get(entry.transit);
+
+                  return {
+                    territory: entry.transit,
+                    bds: {
+                      ref: (bdsEntry?.treshold ?? 0).toFixed(2),
+                      lat: (bdsEntry?.latency ?? 0).toFixed(2),
+                      status: bdsEntry?.status ?? "clear",
+                    },
+                    btc: {
+                      ref: (btcEntry?.treshold ?? 0).toFixed(2),
+                      lat: (btcEntry?.latency ?? 0).toFixed(2),
+                      status: btcEntry?.status ?? "clear",
+                    },
+                    pnk: {
+                      ref: (pnkEntry?.treshold ?? 0).toFixed(2),
+                      lat: (pnkEntry?.latency ?? 0).toFixed(2),
+                      status: pnkEntry?.status ?? "clear",
+                    },
+                  };
+                }),
+                chart: chartData,
+                subtitle: chartSubtitle,
+              };
+            }
+          )
+        );
+      } catch (err) {
+        console.error("Failed to fetch EBR Gateway data:", err);
+        setEbrGatewayData([]);
+      } finally {
+        setEbrGatewayLoading(false);
+      }
+    };
+
+    fetchEbrGatewayData();
+  }, [filterDate, filterHour]);
 
   // Initialize the Mapbox map when the slide shows the map
   useEffect(() => {
@@ -1234,8 +1211,8 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
     return (
       <EBRGatewaySlide
         onBack={() => setSlideIndex(0)}
-        filterDate={filterDate}
-        filterHour={filterHour}
+        data={ebrGatewayData}
+        loading={ebrGatewayLoading}
       />
     );
   }
