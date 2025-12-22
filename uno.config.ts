@@ -65,10 +65,19 @@ export default defineConfig({
     container: "max-w-1200px mx-auto w-full",
   },
 
+  // Custom rules for additional utilities
+  rules: [
+    ["text-xxs", { "font-size": "0.625rem", "line-height": "1.6" }],
+  ],
+
   // Preflights for custom scrollbar
   preflights: [
     {
       getCSS: () => `
+        html, body, #root {
+          width: 100%;
+          height: 100%;
+        }
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
           height: 8px;
@@ -86,6 +95,15 @@ export default defineConfig({
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #374357;
         }
+        .scrollbar-gutter-stable {
+          scrollbar-gutter: stable;
+        }
+        .direction-rtl {
+          direction: rtl;
+        }
+        .direction-ltr {
+          direction: ltr;
+        }
       `,
     },
   ],
@@ -98,5 +116,6 @@ export default defineConfig({
     "btn-sm",
     "btn-md",
     "btn-lg",
+    "text-xxs",
   ],
 });

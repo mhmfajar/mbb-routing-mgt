@@ -12,6 +12,8 @@
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
     "antd": "^6.1.0",
+    "axios": "^1.13.2",
+    "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.5",
     "mapbox-gl": "^3.17.0",

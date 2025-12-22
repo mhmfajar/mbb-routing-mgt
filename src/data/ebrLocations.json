@@ -1,0 +1,542 @@
+[
+    {
+        "treg": "TREG1",
+        "pe_code": "MDC",
+        "label": "PE SPEEDY M",
+        "coverage": "Medan",
+        "lat": 3.83726071,
+        "lon": 98.3535818,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "PUB",
+        "label": "PE SPEEDY PI",
+        "coverage": "Pulo Brayan",
+        "lat": 2.73429714,
+        "lon": 99.4859986,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "DRI",
+        "label": "PE HSI DRI",
+        "coverage": "Duri",
+        "lat": 1.74075051,
+        "lon": 100.866995,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "BDS",
+        "label": "PE3 TRANSIT",
+        "coverage": "Batam Danga",
+        "lat": 0.99523041,
+        "lon": 103.932806,
+        "offset": [
+            -20,
+            -10
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "BTC",
+        "label": "PE SPEEDY B",
+        "coverage": "Batam Center",
+        "lat": 0.08382298,
+        "lon": 104.595684,
+        "offset": [
+            20,
+            10
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "PBR",
+        "label": "PE SPEEDY P",
+        "coverage": "Pekanbaru",
+        "lat": 0.11144286,
+        "lon": 101.640353,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "PDG",
+        "label": "PE HSI PDG",
+        "coverage": null,
+        "lat": -1.2694493,
+        "lon": 100.590796,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "PGC",
+        "label": "PE SPEEDY PI",
+        "coverage": "Palembang",
+        "lat": -2.1804841,
+        "lon": 104.319485,
+        "offset": [
+            0,
+            -20
+        ]
+    },
+    {
+        "treg": "TREG1",
+        "pe_code": "TLK",
+        "label": "PE SPEEDY TI",
+        "coverage": "Talang Kelapa",
+        "lat": -2.8427218,
+        "lon": 104.733784,
+        "offset": [
+            0,
+            20
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "BKS",
+        "label": "PE SPEEDY BKS",
+        "coverage": null,
+        "lat": -6.1739169,
+        "lon": 107.109097,
+        "offset": [
+            40,
+            0
+        ]
+    },
+    {
+        "treg": "TREG2",
+        "pe_code": "JT2",
+        "label": "PE SPEEDY JT",
+        "coverage": "Jatinegara",
+        "lat": -6.1739169,
+        "lon": 106.722418,
+        "offset": [
+            -40,
+            -30
+        ]
+    },
+    {
+        "treg": "TREG2",
+        "pe_code": "CKA",
+        "label": "PE SPEEDY C",
+        "coverage": "Cikupa",
+        "lat": -6.2562897,
+        "lon": 106.30812,
+        "offset": [
+            -60,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "SLP",
+        "label": "PE SPEEDY SI",
+        "coverage": null,
+        "lat": -6.6953877,
+        "lon": 105.97668,
+        "offset": [
+            -70,
+            -20
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "KBB",
+        "label": "PE SPEEDY KI",
+        "coverage": null,
+        "lat": -7.134091,
+        "lon": 106.77658,
+        "offset": [
+            -30,
+            35
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "BOO",
+        "label": "PE SPEEDY B",
+        "coverage": null,
+        "lat": -7.3532867,
+        "lon": 107.136717,
+        "offset": [
+            0,
+            40
+        ]
+    },
+    {
+        "treg": "TREG3",
+        "pe_code": "LBG",
+        "label": "PE SPEEDY LI",
+        "coverage": "Lembong",
+        "lat": -7.4354574,
+        "lon": 107.716736,
+        "offset": [
+            30,
+            40
+        ]
+    },
+    {
+        "treg": "TREG3",
+        "pe_code": "CCD",
+        "label": "PE SPEEDY C",
+        "coverage": "Cicadas",
+        "lat": -6.2837444,
+        "lon": 107.578636,
+        "offset": [
+            30,
+            -30
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "CBN",
+        "label": "PE SPEEDY C",
+        "coverage": null,
+        "lat": -6.5307708,
+        "lon": 107.882455,
+        "offset": [
+            50,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "KDS",
+        "label": "PE HSI KDS",
+        "coverage": null,
+        "lat": -7.0244536,
+        "lon": 109.926329,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG4",
+        "pe_code": "KBU",
+        "label": "PE SPEEDY KI",
+        "coverage": "Jogjakarta",
+        "lat": -7.982861,
+        "lon": 110.423488,
+        "offset": [
+            -30,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "GLK",
+        "label": "PE HSI GLK",
+        "coverage": null,
+        "lat": -7.5449944,
+        "lon": 110.810167,
+        "offset": [
+            30,
+            0
+        ]
+    },
+    {
+        "treg": "TREG4",
+        "pe_code": "GBL",
+        "label": "PE SPEEDY G",
+        "coverage": "Semarang",
+        "lat": -6.832526,
+        "lon": 111.031126,
+        "offset": [
+            0,
+            -30
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "JBR",
+        "label": "PE SPEEDY JI",
+        "coverage": null,
+        "lat": -8.1195994,
+        "lon": 111.970204,
+        "offset": [
+            -30,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "KD0",
+        "label": "PE HSI KD0",
+        "coverage": null,
+        "lat": -8.0375619,
+        "lon": 112.494982,
+        "offset": [
+            0,
+            -25
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "ML0",
+        "label": "PE HSI ML0",
+        "coverage": null,
+        "lat": -8.1469415,
+        "lon": 112.964521,
+        "offset": [
+            30,
+            0
+        ]
+    },
+    {
+        "treg": "TREG5",
+        "pe_code": "RKT",
+        "label": "PE SPEEDY R",
+        "coverage": "Rungkut",
+        "lat": -7.1614963,
+        "lon": 112.218783,
+        "offset": [
+            -40,
+            -20
+        ]
+    },
+    {
+        "treg": "TREG5",
+        "pe_code": "KBL",
+        "label": "PE SPEEDY KI",
+        "coverage": "Kebalen",
+        "lat": -7.4902293,
+        "lon": 112.660702,
+        "offset": [
+            40,
+            20
+        ]
+    },
+    {
+        "treg": "TREG5",
+        "pe_code": "KLM",
+        "label": "PE SPEEDY KI",
+        "coverage": "Kaliasem",
+        "lat": -8.2836239,
+        "lon": 115.036015,
+        "offset": [
+            -25,
+            0
+        ]
+    },
+    {
+        "treg": "TREG5",
+        "pe_code": "SGR",
+        "label": "PE HSI SGR",
+        "coverage": "Singaraja",
+        "lat": -8.6933834,
+        "lon": 115.146495,
+        "offset": [
+            25,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "MTR",
+        "label": "PE2 SPEEDY J",
+        "coverage": null,
+        "lat": -8.4202589,
+        "lon": 116.555116,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG6",
+        "pe_code": "PTK",
+        "label": "PE SPEEDY P",
+        "coverage": "Pontianak",
+        "lat": 1.05046145,
+        "lon": 109.70537,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG6",
+        "pe_code": "SKK",
+        "label": "PE SPEEDY SI",
+        "coverage": "Seikakap",
+        "lat": 0.11144286,
+        "lon": 109.953949,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG6",
+        "pe_code": "BJM",
+        "label": "PE SPEEDY B",
+        "coverage": "Banjarmasin",
+        "lat": -3.5321475,
+        "lon": 114.649336,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG6",
+        "pe_code": "BPP",
+        "label": "PE SPEEDY B",
+        "coverage": "Balikpapan",
+        "lat": -1.1866086,
+        "lon": 116.499871,
+        "offset": [
+            0,
+            -25
+        ]
+    },
+    {
+        "treg": "TREG6",
+        "pe_code": "ULN",
+        "label": "PE SPEEDY U",
+        "coverage": "Ulin",
+        "lat": 0.05620308,
+        "lon": 116.389391,
+        "offset": [
+            0,
+            25
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "TRK",
+        "label": "PE HSI TRK",
+        "coverage": null,
+        "lat": 3.17567222,
+        "lon": 116.223672,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "PTR",
+        "label": "PE SPEEDY P",
+        "coverage": "Makassar",
+        "lat": -5.1294765,
+        "lon": 119.703782,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "BAL",
+        "label": "PE SPEEDY B, M",
+        "coverage": "Makassar",
+        "lat": -3.2012809,
+        "lon": 119.676162,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "PNK",
+        "label": "PE SPEEDY PI",
+        "coverage": "Manado",
+        "lat": 1.43704854,
+        "lon": 125.062047,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "AB1",
+        "label": "PE HSI AB1",
+        "coverage": "Ambon",
+        "lat": -3.4770109,
+        "lon": 126.912582,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": null,
+        "pe_code": "TNT",
+        "label": "PE SPEEDY TI",
+        "coverage": null,
+        "lat": 0.52573444,
+        "lon": 127.796419,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "SON",
+        "label": "PE SPEEDY SI",
+        "coverage": "Sorong",
+        "lat": -0.6619002,
+        "lon": 132.353707,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "JAP",
+        "label": "PE HSI JAP",
+        "coverage": "Jayapura",
+        "lat": -2.9530602,
+        "lon": 140.777783,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG7",
+        "pe_code": "TIM",
+        "label": "PE SPEEDY TI",
+        "coverage": "Timika",
+        "lat": -4.5515293,
+        "lon": 136.330976,
+        "offset": [
+            0,
+            0
+        ]
+    },
+    {
+        "treg": "TREG5",
+        "pe_code": "KPN",
+        "label": "PE SPEEDY KI",
+        "coverage": "Kupang",
+        "lat": -9.6749413,
+        "lon": 123.87439,
+        "offset": [
+            0,
+            0
+        ]
+    }
+]

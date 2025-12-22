@@ -49,9 +49,9 @@ export default function Home() {
 
   return (
     <ConfigProvider theme={antTheme}>
-      <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
+      <div className="min-h-screen bg-[#f5f5f5] flex flex-col">
         {/* Header */}
-        <header className="px-4 pt-5 flex items-center justify-between gradient-border-b h-[62px] relative z-20 bg-[#f2f2f2]">
+        <header className="px-4 pt-5 flex items-center justify-between gradient-border-b h-[62px] relative z-20 bg-[#f5f5f5]">
           {/* Tabs - Only labels, no children */}
           <Tabs
             activeKey={activeTab}
