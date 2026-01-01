@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Select, Button, Table, Modal, Tag, Progress } from "antd";
+import { useState, useEffect, useCallback } from "react";
+import { Select, Button, Table, Modal, Tag, Progress, DatePicker } from "antd";
+import axios from "axios";
+import dayjs from "dayjs";
 import {
   DownOutlined,
   UpOutlined,
@@ -7,18 +9,98 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 
+import { config } from "~/config";
+
 import { NetworkNodeLarge } from "~/components";
 import {
   regionOptions,
-  ebrOptions,
+  ebrOptionsByRegion,
   gatewayOptions,
-  dateOptions,
   routingTableData,
   historyRoutingData,
   transportBundleData,
 } from "~/data/routingData";
 
 import warning from "~/assets/warning.webp";
+
+// Types for Filter Route API Response
+interface PathSegment {
+  from: string;
+  to: string;
+  value: string;
+}
+
+interface UplinkEntry {
+  region: string;
+  tera: string;
+  target: string;
+  date_: string;
+  hour_: number;
+  ebr: string;
+  latency_ebr: number;
+  transit: string;
+  path: string;
+  type: string;
+  paths: PathSegment[];
+}
+
+interface DownlinkEntry {
+  region: string;
+  tera: string;
+  ip_address: string;
+  target: string;
+  date_: string;
+  hour_: number;
+  ebr: string;
+  latency: number;
+  transit: string;
+  path: string;
+  type: string;
+  paths: PathSegment[];
+}
+
+interface InformationEntry {
+  latency_ebr_gw: number;
+  status_symmetric: string;
+}
+
+interface FilterRouteData {
+  uplink: UplinkEntry[];
+  downlink: DownlinkEntry[];
+  information: InformationEntry[];
+}
+
+interface FilterRouteResponse {
+  status: boolean;
+  data: FilterRouteData;
+}
+
+function getSourceType(value: string, isLast: boolean) {
+  if (isLast) return "router";
+  if (value.startsWith("EBR")) return "router";
+  if (value.startsWith("P")) return "switch";
+  return "unknown";
+}
+
+function mapRoutingData(data: PathSegment[]) {
+  const result = [] as Array<{ value: string; source: string }>;
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+    // 'from' node
+    if (i === 0) {
+      result.push({
+        value: item.from,
+        source: getSourceType(item.from, false),
+      });
+    }
+    // 'line' value
+    result.push({ value: item.value, source: "line" });
+    // 'to' node
+    const isLast = i === data.length - 1;
+    result.push({ value: item.to, source: getSourceType(item.to, isLast) });
+  }
+  return result;
+}
 
 // Routing Reference Best Path Slide (Slide 2)
 function RoutingReferenceBestPathSlide({ onBack }: { onBack: () => void }) {
@@ -112,8 +194,8 @@ function RoutingReferenceBestPathSlide({ onBack }: { onBack: () => void }) {
                       bundle.status === "Active"
                         ? "green"
                         : bundle.status === "Standby"
-                        ? "orange"
-                        : "red"
+                          ? "orange"
+                          : "red"
                     }
                   >
                     {bundle.status}
@@ -462,20 +544,45 @@ function RoutingReferenceBestPathSlide({ onBack }: { onBack: () => void }) {
 // Routing On Demand Tab Content
 export function RoutingOnDemandContent() {
   const [slideIndex, setSlideIndex] = useState(0);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([
-    "01-Sumbagut",
-    "02-Sumbagsel",
+  const [selectedRegion, setSelectedRegion] = useState("SUMBAGUT");
+  const [selectedEBR, setSelectedEBR] = useState<string[]>([
+    ebrOptionsByRegion["SUMBAGUT"]?.[0]?.value || "",
   ]);
-  const [selectedEBR, setSelectedEBR] = useState<string[]>(["AHZ.1", "AHZ.2"]);
-  const [selectedGateway, setSelectedGateway] = useState<string[]>([
-    "BTC",
-    "BDS",
-  ]);
-  const [selectedDate, setSelectedDate] = useState<string[]>([
-    "1-5 December 2025",
-  ]);
+  const [selectedGateway, setSelectedGateway] = useState("BDS");
+  const [filterDate, setFilterDate] = useState(dayjs());
+  const [loading, setLoading] = useState(false);
+  const [routingData, setRoutingData] = useState<FilterRouteData | null>(null);
 
-  // Slide 2 Content - Routing Reference Best Path
+  const fetchRoutingData = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const params = new URLSearchParams();
+      params.append("region", selectedRegion);
+      selectedEBR.forEach((ebr) => params.append("ebr[]", ebr));
+      params.append("gateway", selectedGateway);
+      params.append("date", filterDate.format("YYYY-MM-DD"));
+
+      const response = await axios.get<FilterRouteResponse>(
+        `/api/mbb-routing-mgt/filterRoute?${params.toString()}`,
+        { timeout: config.api.timeout }
+      );
+
+      if (response.data.status) {
+        setRoutingData(response.data.data);
+      }
+      console.log("Routing Data:", response.data);
+    } catch (error) {
+      console.error("Error fetching routing data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRegion, selectedEBR, selectedGateway, filterDate]);
+
+  useEffect(() => {
+    fetchRoutingData();
+  }, []);
+
   if (slideIndex === 1) {
     return <RoutingReferenceBestPathSlide onBack={() => setSlideIndex(0)} />;
   }
@@ -487,13 +594,14 @@ export function RoutingOnDemandContent() {
         <div className="col-span-3">
           <label className="text-xs text-gray-500 block mb-1">Region</label>
           <Select
-            mode="multiple"
             placeholder="Select Region"
-            value={selectedRegions}
-            onChange={setSelectedRegions}
+            value={selectedRegion}
+            onChange={(value) => {
+              setSelectedRegion(value);
+              setSelectedEBR([ebrOptionsByRegion[value]?.[0]?.value || ""]);
+            }}
             options={regionOptions}
             style={{ width: "100%" }}
-            maxTagCount="responsive"
             className="custom-select"
             classNames={{ popup: { root: "custom-select-dropdown" } }}
           />
@@ -505,7 +613,7 @@ export function RoutingOnDemandContent() {
             placeholder="Select EBR"
             value={selectedEBR}
             onChange={setSelectedEBR}
-            options={ebrOptions}
+            options={ebrOptionsByRegion[selectedRegion] || []}
             style={{ width: "100%" }}
             maxTagCount="responsive"
             className="custom-select"
@@ -515,7 +623,6 @@ export function RoutingOnDemandContent() {
         <div className="col-span-3">
           <label className="text-xs text-gray-500 block mb-1">Gateway</label>
           <Select
-            mode="multiple"
             placeholder="Select Gateway"
             value={selectedGateway}
             onChange={setSelectedGateway}
@@ -528,16 +635,13 @@ export function RoutingOnDemandContent() {
         </div>
         <div className="col-span-3">
           <label className="text-xs text-gray-500 block mb-1">Date</label>
-          <Select
-            mode="multiple"
-            placeholder="Select Date"
-            value={selectedDate}
-            onChange={setSelectedDate}
-            options={dateOptions}
+          <DatePicker
+            value={filterDate}
+            onChange={(date) => date && setFilterDate(date)}
+            format="D-MM-YYYY"
+            allowClear={false}
             style={{ width: "100%" }}
-            maxTagCount="responsive"
             className="custom-select"
-            classNames={{ popup: { root: "custom-select-dropdown" } }}
           />
         </div>
       </div>
@@ -549,125 +653,134 @@ export function RoutingOnDemandContent() {
           size="middle"
           block
           className="check-routing-btn"
+          loading={loading}
+          onClick={fetchRoutingData}
         >
           CHECK ROUTING
         </Button>
       </div>
+      {/* Show empty state when no data */}
+      {(!routingData ||
+        (routingData.uplink?.length === 0 &&
+          routingData.downlink?.length === 0 &&
+          routingData.information?.length === 0)) ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4">📊</div>
+            <p className="text-gray-500 text-lg font-semibold">
+              Data information not found
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Please select different filter options and try again
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="px-4 py-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-[#7f7f7f] font-bold">Latency EBR to IGW :</span>
+              <span className="text-white px-2 py-0.5 rounded inline-block bg-gradient-to-r from-[#009688] to-[#1ecb6b]">
+                {routingData?.information?.[0]?.latency_ebr_gw || 0} ms
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-[#7f7f7f] font-bold">Status :</span>
+              <span className="text-yellow-600 font-bold font-italic">
+                {routingData?.information?.[0]?.status_symmetric || "Unknown"}
+              </span>
+              <img src={warning} alt="Warning" className="w-4 h-4" />
+            </div>
+          </div>
 
-      <div className="px-4 py-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-[#7f7f7f] font-bold">Latency EBR to IGW :</span>
-          <span className="text-white px-2 py-0.5 rounded inline-block bg-gradient-to-r from-[#009688] to-[#1ecb6b]">
-            31 ms
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-[#7f7f7f] font-bold">Status :</span>
-          <span className="text-yellow-600 font-bold font-italic">
-            Asymmetric
-          </span>
-          <img src={warning} alt="Warning" className="w-4 h-4" />
-        </div>
-      </div>
+          {/* Network Path Diagrams */}
+          <div className="px-4 py-2 overflow-auto space-y-6" style={{ maxHeight: 'calc(100vh - 302px)' }}>
+            {/* Uplink Cards */}
+            {routingData?.uplink &&
+              routingData.uplink.length > 0 &&
+              routingData.uplink.map((uplinkItem, uplinkIndex) => (
+                <div key={`uplink-${uplinkIndex}`} className="bg-white rounded-xl shadow-md p-6">
+                  <div className="relative flex items-center mb-6">
+                    <div className="flex-1 h-[2px] bg-[#00838f]" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
+                      <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
+                        Uplink - {uplinkItem.ebr}
+                      </span>
+                    </div>
+                    <div className="text-[#00838f] text-xl">→</div>
+                  </div>
+                  <div className="flex items-start justify-between px-4">
+                    {mapRoutingData(uplinkItem.paths).map((item, index) => {
+                      if (item.source === "line") {
+                        return (
+                          <div
+                            key={index}
+                            className="flex-1 flex items-center justify-center relative mt-6"
+                          >
+                            <div className="h-[2px] bg-[#00838f] flex-1" />
+                            <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
+                              {item.value}
+                            </span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <NetworkNodeLarge key={index} label={item.value} type={item.source} />
+                        );
+                      }
+                    })}
+                  </div>
+                </div>
+              ))}
 
-      {/* Network Path Diagrams */}
-      <div className="flex-1 p-6 overflow-auto space-y-6">
-        {/* Uplink Card */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="relative flex items-center mb-6">
-            <div className="flex-1 h-[2px] bg-[#00838f]" />
-            <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
-              <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
-                Uplink
-              </span>
-            </div>
-            <div className="text-[#00838f] text-xl">→</div>
+            {/* Downlink Cards */}
+            {routingData?.downlink &&
+              routingData.downlink.length > 0 &&
+              routingData.downlink.map((downlinkItem, downlinkIndex) => (
+                <div key={`downlink-${downlinkIndex}`} className="bg-white rounded-xl shadow-md p-6">
+                  <div className="relative flex items-center mb-6">
+                    <div className="text-[#00838f] text-xl">←</div>
+                    <div className="flex-1 h-[2px] bg-[#00838f]" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
+                      <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
+                        Downlink - {downlinkItem.ebr}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start justify-between px-4">
+                    {mapRoutingData(downlinkItem.paths).map((item, index) => {
+                      if (item.source === "line") {
+                        return (
+                          <div
+                            key={index}
+                            className="flex-1 flex items-center justify-center relative mt-6"
+                          >
+                            <div className="h-[2px] bg-[#00838f] flex-1" />
+                            <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
+                              {item.value}
+                            </span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <NetworkNodeLarge key={index} label={item.value} type={item.source} />
+                        );
+                      }
+                    })}
+                  </div>
+                </div>
+              ))}
           </div>
-          <div className="flex items-start justify-between px-4">
-            <NetworkNodeLarge label="EBR" type="router" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="PE TRANSIT" type="switch" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="P 1" type="switch" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="Cloud IPBB Telkom" type="cloud" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                12 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="IGW/DGW" type="router" />
-          </div>
-        </div>
-
-        {/* Downlink Card */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="relative flex items-center mb-6">
-            <div className="text-[#00838f] text-xl">←</div>
-            <div className="flex-1 h-[2px] bg-[#00838f]" />
-            <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
-              <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
-                Downlink
-              </span>
-            </div>
-          </div>
-          <div className="flex items-start justify-between px-4">
-            <NetworkNodeLarge label="EBR" type="router" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="PE TRANSIT" type="switch" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="P 2" type="switch" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#00838f] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#009688] to-[#1ecb6b] text-white px-3 py-0.5 rounded text-xs">
-                1 ms
-              </span>
-            </div>
-            <NetworkNodeLarge label="Cloud IPBB Telkom" type="cloud" />
-            <div className="flex-1 flex items-center justify-center relative mt-6">
-              <div className="h-[2px] bg-[#f24b6a] flex-1" />
-              <span className="absolute bg-gradient-to-r from-[#f24b6a] to-[#ff6b6b] text-white px-3 py-0.5 rounded text-xs flex items-center gap-1">
-                15 ms <span className="text-white">⚠</span>
-              </span>
-            </div>
-            <NetworkNodeLarge label="IGW/DGW" type="router" />
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Slide Toggle Button */}
-      <div className="flex justify-center py-4">
+      <div className="flex justify-center w-full absolute bottom-0">
         <button
           onClick={() => setSlideIndex(1)}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors bg-white px-10 rounded-t"
         >
-          <DownOutlined style={{ fontSize: 24 }} />
+          <DownOutlined />
         </button>
       </div>
     </>

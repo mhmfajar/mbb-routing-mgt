@@ -2,11 +2,12 @@ import cloudImage from "~/assets/cloud.webp";
 import routerImage from "~/assets/router.webp";
 import switchImage from "~/assets/switch.webp";
 
-type NodeType = "router" | "switch" | "cloud";
+// type NodeType = "router" | "switch" | "cloud";
 
 interface NetworkNodeLargeProps {
   label: string;
-  type: NodeType;
+  // type: NodeType;
+  type: string;
 }
 
 export function NetworkNodeLarge({ label, type }: NetworkNodeLargeProps) {
