@@ -42,6 +42,7 @@ interface UplinkEntry {
   path: string;
   type: string;
   paths: PathSegment[];
+  information: InformationEntry;
 }
 
 interface DownlinkEntry {
@@ -64,15 +65,21 @@ interface InformationEntry {
   status_symmetric: string;
 }
 
-interface FilterRouteData {
+// New grouped structure
+interface GroupedRouteEntry {
+  uplink: UplinkEntry | null;
+  downlink: DownlinkEntry | null;
+  information: InformationEntry | null;
+}
+
+interface FilterRouteApiData {
   uplink: UplinkEntry[];
   downlink: DownlinkEntry[];
-  information: InformationEntry[];
 }
 
 interface FilterRouteResponse {
   status: boolean;
-  data: FilterRouteData;
+  data: FilterRouteApiData;
 }
 
 function getSourceType(value: string, isLast: boolean) {
@@ -551,7 +558,7 @@ export function RoutingOnDemandContent() {
   const [selectedGateway, setSelectedGateway] = useState("BDS");
   const [filterDate, setFilterDate] = useState(dayjs());
   const [loading, setLoading] = useState(false);
-  const [routingData, setRoutingData] = useState<FilterRouteData | null>(null);
+  const [routingData, setRoutingData] = useState<GroupedRouteEntry[]>([]);
 
   const fetchRoutingData = useCallback(async () => {
     try {
@@ -569,9 +576,28 @@ export function RoutingOnDemandContent() {
       );
 
       if (response.data.status) {
-        setRoutingData(response.data.data);
+        const apiData = response.data.data;
+
+        // Transform: group uplink and downlink by EBR name
+        const ebrMap = new Map<string, GroupedRouteEntry>();
+
+        // Process uplinks
+        apiData.uplink.forEach((uplink) => {
+          const existing = ebrMap.get(uplink.ebr) || { uplink: null, downlink: null, information: null };
+          existing.uplink = uplink;
+          existing.information = uplink.information || null;
+          ebrMap.set(uplink.ebr, existing);
+        });
+
+        // Process downlinks
+        apiData.downlink.forEach((downlink) => {
+          const existing = ebrMap.get(downlink.ebr) || { uplink: null, downlink: null, information: null };
+          existing.downlink = downlink;
+          ebrMap.set(downlink.ebr, existing);
+        });
+
+        setRoutingData(Array.from(ebrMap.values()));
       }
-      console.log("Routing Data:", response.data);
     } catch (error) {
       console.error("Error fetching routing data:", error);
     } finally {
@@ -660,10 +686,7 @@ export function RoutingOnDemandContent() {
         </Button>
       </div>
       {/* Show empty state when no data */}
-      {(!routingData ||
-        (routingData.uplink?.length === 0 &&
-          routingData.downlink?.length === 0 &&
-          routingData.information?.length === 0)) ? (
+      {routingData.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-6xl mb-4">📊</div>
@@ -676,41 +699,44 @@ export function RoutingOnDemandContent() {
           </div>
         </div>
       ) : (
-        <>
-          <div className="px-4 py-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-[#7f7f7f] font-bold">Latency EBR to IGW :</span>
-              <span className="text-white px-2 py-0.5 rounded inline-block bg-gradient-to-r from-[#009688] to-[#1ecb6b]">
-                {routingData?.information?.[0]?.latency_ebr_gw || 0} ms
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[#7f7f7f] font-bold">Status :</span>
-              <span className="text-yellow-600 font-bold font-italic">
-                {routingData?.information?.[0]?.status_symmetric || "Unknown"}
-              </span>
-              <img src={warning} alt="Warning" className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="px-4 py-2 space-y-6 overflow-auto max-h-[calc(100vh-230px)]">
+          {routingData.map((entry, entryIndex) => (
+            <div key={entryIndex} className="space-y-4">
+              {/* Information Header */}
+              {entry.information && (
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[#7f7f7f] font-bold">
+                      Latency EBR to IGW :
+                    </span>
+                    <span className="text-white px-2 py-0.5 rounded inline-block bg-gradient-to-r from-[#009688] to-[#1ecb6b]">
+                      {entry.information.latency_ebr_gw} ms
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[#7f7f7f] font-bold">Status :</span>
+                    <span className="text-yellow-600 font-bold font-italic">
+                      {entry.information.status_symmetric}
+                    </span>
+                    <img src={warning} alt="Warning" className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
 
-          {/* Network Path Diagrams */}
-          <div className="px-4 py-2 overflow-auto space-y-6" style={{ maxHeight: 'calc(100vh - 302px)' }}>
-            {/* Uplink Cards */}
-            {routingData?.uplink &&
-              routingData.uplink.length > 0 &&
-              routingData.uplink.map((uplinkItem, uplinkIndex) => (
-                <div key={`uplink-${uplinkIndex}`} className="bg-white rounded-xl shadow-md p-6">
+              {/* Uplink Card */}
+              {entry.uplink && (
+                <div className="bg-white rounded-xl shadow-md p-6">
                   <div className="relative flex items-center mb-6">
                     <div className="flex-1 h-[2px] bg-[#00838f]" />
                     <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
                       <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
-                        Uplink - {uplinkItem.ebr}
+                        Uplink - {entry.uplink.ebr}
                       </span>
                     </div>
                     <div className="text-[#00838f] text-xl">→</div>
                   </div>
                   <div className="flex items-start justify-between px-4">
-                    {mapRoutingData(uplinkItem.paths).map((item, index) => {
+                    {mapRoutingData(entry.uplink.paths).map((item, index) => {
                       if (item.source === "line") {
                         return (
                           <div
@@ -725,30 +751,32 @@ export function RoutingOnDemandContent() {
                         );
                       } else {
                         return (
-                          <NetworkNodeLarge key={index} label={item.value} type={item.source} />
+                          <NetworkNodeLarge
+                            key={index}
+                            label={item.value}
+                            type={item.source}
+                          />
                         );
                       }
                     })}
                   </div>
                 </div>
-              ))}
+              )}
 
-            {/* Downlink Cards */}
-            {routingData?.downlink &&
-              routingData.downlink.length > 0 &&
-              routingData.downlink.map((downlinkItem, downlinkIndex) => (
-                <div key={`downlink-${downlinkIndex}`} className="bg-white rounded-xl shadow-md p-6">
+              {/* Downlink Card */}
+              {entry.downlink && (
+                <div className="bg-white rounded-xl shadow-md p-6">
                   <div className="relative flex items-center mb-6">
                     <div className="text-[#00838f] text-xl">←</div>
                     <div className="flex-1 h-[2px] bg-[#00838f]" />
                     <div className="absolute left-1/2 -translate-x-1/2 bg-white px-2">
                       <span className="border border-gray-300 px-4 py-1 rounded-full text-sm font-medium text-gray-600">
-                        Downlink - {downlinkItem.ebr}
+                        Downlink - {entry.downlink.ebr}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-start justify-between px-4">
-                    {mapRoutingData(downlinkItem.paths).map((item, index) => {
+                    {mapRoutingData(entry.downlink.paths).map((item, index) => {
                       if (item.source === "line") {
                         return (
                           <div
@@ -763,15 +791,20 @@ export function RoutingOnDemandContent() {
                         );
                       } else {
                         return (
-                          <NetworkNodeLarge key={index} label={item.value} type={item.source} />
+                          <NetworkNodeLarge
+                            key={index}
+                            label={item.value}
+                            type={item.source}
+                          />
                         );
                       }
                     })}
                   </div>
                 </div>
-              ))}
-          </div>
-        </>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Slide Toggle Button */}
