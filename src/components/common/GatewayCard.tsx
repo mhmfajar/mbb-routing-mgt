@@ -1,11 +1,4 @@
-interface GatewayCardProps {
-  name: string;
-  percentage: number;
-  color: string;
-  maintainLink?: number;
-  degradeLink?: number;
-  improveLink?: number;
-}
+import type { GatewayCardProps } from "~/types";
 
 export function GatewayCard({
   name,

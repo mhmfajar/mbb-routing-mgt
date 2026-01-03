@@ -1,113 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
-import { Select, Button, Table, Modal, Tag, Progress, DatePicker } from "antd";
-import axios from "axios";
-import dayjs from "dayjs";
 import {
   DownOutlined,
-  UpOutlined,
   HistoryOutlined,
   InfoCircleOutlined,
+  UpOutlined,
 } from "@ant-design/icons";
+import { Button, DatePicker, Modal, Progress, Select, Table, Tag } from "antd";
+import axios from "axios";
+import dayjs from "dayjs";
+import { useCallback, useEffect, useState } from "react";
 
+import warning from "~/assets/images/warning.webp";
+import { NetworkNodeLarge } from "~/components/common";
 import { config } from "~/config";
-
-import { NetworkNodeLarge } from "~/components";
 import {
-  regionOptions,
   ebrOptionsByRegion,
   gatewayOptions,
-  routingTableData,
   historyRoutingData,
+  regionOptions,
+  routingTableData,
   transportBundleData,
-} from "~/data/routingData";
+} from "~/data/routing";
+import { mapRoutingData } from "~/utils";
 
-import warning from "~/assets/warning.webp";
-
-// Types for Filter Route API Response
-interface PathSegment {
-  from: string;
-  to: string;
-  value: string;
-}
-
-interface UplinkEntry {
-  region: string;
-  tera: string;
-  target: string;
-  date_: string;
-  hour_: number;
-  ebr: string;
-  latency_ebr: number;
-  transit: string;
-  path: string;
-  type: string;
-  paths: PathSegment[];
-  information: InformationEntry;
-}
-
-interface DownlinkEntry {
-  region: string;
-  tera: string;
-  ip_address: string;
-  target: string;
-  date_: string;
-  hour_: number;
-  ebr: string;
-  latency: number;
-  transit: string;
-  path: string;
-  type: string;
-  paths: PathSegment[];
-}
-
-interface InformationEntry {
-  latency_ebr_gw: number;
-  status_symmetric: string;
-}
-
-// New grouped structure
-interface GroupedRouteEntry {
-  uplink: UplinkEntry | null;
-  downlink: DownlinkEntry | null;
-  information: InformationEntry | null;
-}
-
-interface FilterRouteApiData {
-  uplink: UplinkEntry[];
-  downlink: DownlinkEntry[];
-}
-
-interface FilterRouteResponse {
-  status: boolean;
-  data: FilterRouteApiData;
-}
-
-function getSourceType(value: string, isLast: boolean) {
-  if (isLast) return "router";
-  if (value.startsWith("EBR")) return "router";
-  if (value.startsWith("P")) return "switch";
-  return "unknown";
-}
-
-function mapRoutingData(data: PathSegment[]) {
-  const result = [] as Array<{ value: string; source: string }>;
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i];
-    // 'from' node
-    if (i === 0) {
-      result.push({
-        value: item.from,
-        source: getSourceType(item.from, false),
-      });
-    }
-    // 'line' value
-    result.push({ value: item.value, source: "line" });
-    // 'to' node
-    const isLast = i === data.length - 1;
-    result.push({ value: item.to, source: getSourceType(item.to, isLast) });
-  }
-  return result;
-}
+import type { FilterRouteResponse, GroupedRouteEntry } from "~/types";
 
 // Routing Reference Best Path Slide (Slide 2)
 function RoutingReferenceBestPathSlide({ onBack }: { onBack: () => void }) {
@@ -201,8 +116,8 @@ function RoutingReferenceBestPathSlide({ onBack }: { onBack: () => void }) {
                       bundle.status === "Active"
                         ? "green"
                         : bundle.status === "Standby"
-                          ? "orange"
-                          : "red"
+                        ? "orange"
+                        : "red"
                     }
                   >
                     {bundle.status}
@@ -583,7 +498,11 @@ export function RoutingOnDemandContent() {
 
         // Process uplinks
         apiData.uplink.forEach((uplink) => {
-          const existing = ebrMap.get(uplink.ebr) || { uplink: null, downlink: null, information: null };
+          const existing = ebrMap.get(uplink.ebr) || {
+            uplink: null,
+            downlink: null,
+            information: null,
+          };
           existing.uplink = uplink;
           existing.information = uplink.information || null;
           ebrMap.set(uplink.ebr, existing);
@@ -591,7 +510,11 @@ export function RoutingOnDemandContent() {
 
         // Process downlinks
         apiData.downlink.forEach((downlink) => {
-          const existing = ebrMap.get(downlink.ebr) || { uplink: null, downlink: null, information: null };
+          const existing = ebrMap.get(downlink.ebr) || {
+            uplink: null,
+            downlink: null,
+            information: null,
+          };
           existing.downlink = downlink;
           ebrMap.set(downlink.ebr, existing);
         });

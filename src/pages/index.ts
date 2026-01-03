@@ -1,2 +1,2 @@
-export { default as Home } from "./Home";
-export { default as NotFound } from "./NotFound";
+export { Home } from "./home";
+export { NotFound } from "./not-found";

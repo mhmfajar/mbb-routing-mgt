@@ -1,8 +1,8 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 
 import { MainLayout } from "~/layouts";
-import HomePage from "~/pages/Home";
-import NotFoundPage from "~/pages/NotFound";
+import { Home as HomePage } from "~/pages/home";
+import { NotFound as NotFoundPage } from "~/pages/not-found";
 
 // Route configuration
 const routes: RouteObject[] = [

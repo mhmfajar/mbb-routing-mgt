@@ -1,16 +1,12 @@
-import { useState } from "react";
-import { Tabs, Input, ConfigProvider } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import { ConfigProvider, Input, Tabs } from "antd";
+import { useState } from "react";
 
-import {
-  CTIRoutingContent,
-  RoutingOnDemandContent,
-  type ViewState,
-} from "~/components";
+import { CTIRoutingContent, RoutingOnDemandContent } from "~/components";
+
+import type { TabId, ViewState } from "~/types";
 
 import "./Home.css";
-
-type TabId = "cti-routing" | "routing-on-demand";
 
 const INITIAL_VIEW: ViewState = {
   longitude: 117.969,

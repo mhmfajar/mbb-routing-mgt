@@ -1,575 +1,40 @@
-import React, { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
+import { DownOutlined, FilterOutlined, UpOutlined } from "@ant-design/icons";
 import { Button, DatePicker, TimePicker } from "antd";
-import { FilterOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
-import * as echarts from "echarts";
 import axios, { type AxiosResponse } from "axios";
 import dayjs from "dayjs";
+import mapboxgl from "mapbox-gl";
+import React, { useEffect, useRef, useState } from "react";
 
+import routerMapIcon from "~/assets/images/router-1-map.webp";
+import routingReferenceBestPath from "~/assets/images/routing-reference-best-path.webp";
+import warning from "~/assets/images/warning.webp";
+import {
+  GatewayCard,
+  MiniChart,
+  NationWideDonutChart,
+  NetworkNodeLarge,
+} from "~/components/common";
 import { config } from "~/config";
-import { GatewayCard, NetworkNodeLarge } from "~/components";
-import ebrLocations from "~/data/ebrLocations.json";
-import routerMapIcon from "~/assets/router-1-map.webp";
-import warning from "~/assets/warning.webp";
+import {
+  EBR_CONNECTIONS,
+  EBR_CONNECTIONS_LAYER_ID,
+  EBR_CONNECTIONS_SOURCE_ID,
+  MAP_STYLE_URL,
+  TERRITORIES,
+  TERRITORY_NAMES,
+} from "~/data/routing";
+import ebrLocations from "~/data/routing/ebrLocations.json";
+import { buildEbrConnectionsGeoJson, getLatencyColor } from "~/utils";
 
-const MAP_STYLE_URL = "mapbox://styles/mhmfajar/cmj9bkmus002m01sa35ty1178";
-
-type TransitEntry = {
-  transit: string;
-  baseline: string;
-  latency: string;
-};
-
-type TerritoryGroup = {
-  [territoryId: string]: TransitEntry[];
-};
-
-type EBRTOGateways = {
-  BDS: TerritoryGroup;
-  BTC: TerritoryGroup;
-  PNK: TerritoryGroup;
-};
-
-type EBRTOGatewaysResponse = {
-  status: number;
-  data: EBRTOGateways;
-};
-
-type VerifierStatus = "clear" | "not clear";
-
-interface VerifierEntry {
-  verifierid: string;
-  hostname: string;
-  latency: number;
-  treshold: number;
-  status: VerifierStatus;
-}
-
-interface CtiGatewayMessage {
-  BTC: VerifierEntry[];
-  BDS: VerifierEntry[];
-  PNK: VerifierEntry[];
-}
-
-interface CtiGatewayResponse {
-  status: boolean;
-  message: CtiGatewayMessage;
-}
-
-type DataSeries = {
-  name: string;
-  data: number[];
-  type: string;
-};
-
-type DataPerRegion = DataSeries[];
-
-interface DataContent {
-  subtitle: string;
-  [region: string]: DataPerRegion | string | string[];
-  range_week: string[];
-  range_date: string;
-}
-
-interface TrendEbrToGwResponse {
-  status: boolean;
-  data: DataContent;
-}
-
-// EBR Gateway data types (for state lifting)
-interface EBRGatewayEntry {
-  territory: string;
-  bds: { ref: string; lat: string; status: string };
-  btc: { ref: string; lat: string; status: string };
-  pnk: { ref: string; lat: string; status: string };
-}
-
-interface EBRGatewayChartData {
-  regionName: string;
-  data: Record<string, DataSeries>;
-}
-
-interface EBRGatewayTerritoryData {
-  name: string;
-  entries: EBRGatewayEntry[];
-  chart: EBRGatewayChartData[];
-  subtitle: string;
-}
-
-type MiniChartProps = {
-  chartData: Record<string, DataSeries>;
-  height: number;
-  title: string;
-  subtitle?: string;
-};
-
-function MiniChart({ chartData, height, title, subtitle }: MiniChartProps) {
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const instanceRef = useRef<echarts.ECharts | null>(null);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
-
-  useEffect(() => {
-    const el = chartRef.current;
-    if (!el) return;
-
-    // Init chart
-    const chart = echarts.init(el, undefined, { renderer: "svg" });
-    instanceRef.current = chart;
-
-    // Color palette for series
-    const colors = [
-      "#e74c3c",
-      "#3498db",
-      "#2ecc71",
-      "#9b59b6",
-      "#f1c40f",
-      "#1abc9c",
-      "#e67e22",
-      "#00bcd4",
-      "#ff69b4",
-      "#8bc34a",
-      "#673ab7",
-      "#ff5722",
-    ];
-
-    // Symbol shapes for different series
-    const symbols: Array<
-      "circle" | "rect" | "triangle" | "diamond" | "arrow" | "none"
-    > = ["rect", "circle", "triangle", "diamond", "arrow", "rect"];
-
-    // Create series from chartData
-    const seriesData = Object.values(chartData).map((series, idx) => ({
-      name: series.name,
-      type: "line" as const,
-      data: series.data,
-      smooth: false,
-      lineStyle: { width: 1.5, color: colors[idx % colors.length] },
-      symbol: symbols[idx % symbols.length],
-      symbolSize: 6,
-      itemStyle: { color: colors[idx % colors.length] },
-    }));
-
-    const option: echarts.EChartsOption = {
-      title: {
-        text: title,
-        subtext: subtitle || "",
-        left: "center",
-        top: 0,
-        textStyle: { fontSize: 11, fontWeight: "bold", color: "#333" },
-        subtextStyle: { fontSize: 8, color: "#999" },
-      },
-      grid: { top: 40, left: 35, right: 10, bottom: 10 },
-      xAxis: {
-        type: "category",
-        data: seriesData[0]?.data?.map((_, i) => i) || [],
-        axisLabel: { show: false },
-        axisLine: { lineStyle: { color: "#ccc" } },
-        axisTick: { show: false },
-      },
-      yAxis: {
-        type: "value",
-        axisLabel: { fontSize: 8, color: "#666" },
-        axisLine: { show: false },
-        splitLine: { lineStyle: { color: "#eee" } },
-      },
-      series: seriesData,
-      tooltip: {
-        trigger: "axis",
-        confine: true,
-        textStyle: { fontSize: 9 },
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
-        borderColor: "#ddd",
-        borderWidth: 1,
-        padding: [4, 8],
-        axisPointer: {
-          type: "line",
-          lineStyle: { color: "#999", type: "dashed" },
-        },
-        formatter: function (params: unknown) {
-          const data = params as Array<{
-            marker: string;
-            seriesName: string;
-            value: number;
-          }>;
-          if (!Array.isArray(data) || data.length === 0) return "";
-          let result = "";
-          data.forEach((item) => {
-            result += `${item.marker} ${item.seriesName}: <b>${item.value?.toFixed(2) || "-"
-              }</b><br/>`;
-          });
-          return result;
-        },
-      },
-      legend: {
-        show: false,
-      },
-    };
-
-    chart.setOption(option, { notMerge: true });
-
-    // Keep chart responsive
-    if (typeof ResizeObserver !== "undefined") {
-      const ro = new ResizeObserver(() => chart.resize());
-      ro.observe(el);
-      resizeObserverRef.current = ro;
-    }
-
-    return () => {
-      resizeObserverRef.current?.disconnect();
-      resizeObserverRef.current = null;
-      if (!chart.isDisposed()) chart.dispose();
-      instanceRef.current = null;
-    };
-  }, [chartData, title]);
-
-  return <div ref={chartRef} style={{ height, width: "100%" }} />;
-}
-
-// Nation Wide Donut Chart Component
-type NationWideDonutChartProps = {
-  maintain: number;
-  degrade: number;
-  improve: number;
-};
-
-function NationWideDonutChart({
-  maintain,
-  degrade,
-  improve,
-}: NationWideDonutChartProps) {
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const instanceRef = useRef<echarts.ECharts | null>(null);
-
-  const total = maintain + degrade + improve;
-
-  useEffect(() => {
-    const el = chartRef.current;
-    if (!el) return;
-
-    const chart = echarts.init(el, undefined, { renderer: "svg" });
-    instanceRef.current = chart;
-
-    const option: echarts.EChartsOption = {
-      tooltip: {
-        trigger: "item",
-        formatter: "{b}: {c} ({d}%)",
-      },
-      series: [
-        {
-          name: "EBR to GW",
-          type: "pie",
-          radius: ["55%", "80%"],
-          center: ["50%", "50%"],
-          avoidLabelOverlap: true,
-          startAngle: 115,
-          label: {
-            show: true,
-            position: "outside",
-            formatter: (params) => {
-              const nameMap: Record<string, string> = {
-                Maintain: "MAINTAIN",
-                Degrade: "DEGRADE",
-                Improve: "IMPROVE",
-              };
-              return `{value|${params.value}} {unit|Link}\n{name|${nameMap[params.name] || params.name
-                }}`;
-            },
-            rich: {
-              value: {
-                fontSize: 14,
-                fontWeight: "bold",
-                lineHeight: 18,
-              },
-              unit: {
-                fontSize: 11,
-                lineHeight: 18,
-              },
-              name: {
-                fontSize: 10,
-                color: "#666",
-                lineHeight: 14,
-              },
-            },
-          },
-          labelLine: {
-            show: true,
-            length: 15,
-            length2: 52.5,
-            smooth: 0.1,
-          },
-          labelLayout: {
-            hideOverlap: false,
-          },
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: "#fff",
-            borderWidth: 2,
-          },
-          data: [
-            {
-              value: degrade,
-              name: "Degrade",
-              itemStyle: { color: "#d63031" },
-              label: { color: "#d63031" },
-              labelLine: { lineStyle: { color: "#d63031" } },
-            },
-            {
-              value: improve,
-              name: "Improve",
-              itemStyle: { color: "#0984e3" },
-              label: { color: "#0984e3" },
-              labelLine: { lineStyle: { color: "#0984e3" } },
-            },
-            {
-              value: maintain,
-              name: "Maintain",
-              itemStyle: {
-                color: {
-                  type: "linear",
-                  x: 0,
-                  y: 0,
-                  x2: 1,
-                  y2: 1,
-                  colorStops: [
-                    { offset: 0, color: "#00b894" },
-                    { offset: 1, color: "#1ecb6b" },
-                  ],
-                },
-              },
-              label: { color: "#00b894" },
-              labelLine: { lineStyle: { color: "#00b894" } },
-            },
-          ],
-        },
-      ],
-      graphic: [
-        // Center text - total
-        {
-          type: "text",
-          left: "center",
-          top: "42%",
-          style: {
-            text: `${total}Link`,
-            fontSize: 22,
-            fontWeight: "bold",
-            fill: "#333",
-          },
-        },
-        // Center text - subtitle
-        {
-          type: "text",
-          left: "center",
-          top: "52%",
-          style: {
-            text: "EBR to GW",
-            fontSize: 12,
-            fill: "#666",
-          },
-        },
-      ],
-    };
-
-    chart.setOption(option);
-
-    const resizeObserver = new ResizeObserver(() => {
-      chart.resize();
-    });
-    resizeObserver.observe(el);
-
-    return () => {
-      resizeObserver.disconnect();
-      if (!chart.isDisposed()) chart.dispose();
-      instanceRef.current = null;
-    };
-  }, [maintain, degrade, improve, total]);
-
-  return <div ref={chartRef} style={{ height: 260, width: "100%" }} />;
-}
-
-// EBR Locations data loaded from ~/data/ebrLocations.json
-
-const territoryNames = [
-  "Territory 1",
-  "Territory 2",
-  "Territory 3",
-  "Territory 4",
-];
-
-const EBR_CONNECTIONS_SOURCE_ID = "ebr-connections";
-const EBR_CONNECTIONS_LAYER_ID = "ebr-connections-line";
-const EBR_CONNECTIONS: Array<{
-  from: string;
-  to: string;
-  bulge?: "north" | "south" | "auto";
-  bowFactor?: number;
-  segments?: number;
-}> = [
-    // Only connect this pair for now
-    { from: "MDC", to: "PUB", bulge: "north", bowFactor: 1.2, segments: 256 },
-  ];
-
-// Territory definitions for navigation
-const TERRITORIES = [
-  {
-    id: 1,
-    name: "Territory 1",
-    region: "Sumatra",
-    center: { lng: 101.5, lat: 0.5 },
-    zoom: 5.5,
-    ebrCount: 18,
-    linkToGw: 72,
-    color: "#f5c842", // Gold/Yellow
-  },
-  {
-    id: 2,
-    name: "Territory 2",
-    region: "Banten - Jawa Tengah",
-    center: { lng: 107.5, lat: -6.8 },
-    zoom: 7,
-    ebrCount: 22,
-    linkToGw: 88,
-    color: "#f97316", // Orange
-  },
-  {
-    id: 3,
-    name: "Territory 3",
-    region: "Jawa Timur - NTT",
-    center: { lng: 115, lat: -8.2 },
-    zoom: 6,
-    ebrCount: 28,
-    linkToGw: 122,
-    color: "#a855f7", // Purple
-  },
-  {
-    id: 4,
-    name: "Territory 4",
-    region: "Kalimantan - Papua",
-    center: { lng: 125, lat: -2 },
-    zoom: 4.5,
-    ebrCount: 20,
-    linkToGw: 80,
-    color: "#00838f", // Teal
-  },
-];
-
-// View state type
-export interface ViewState {
-  longitude: number;
-  latitude: number;
-  zoom: number;
-  pitch: number;
-  bearing: number;
-}
-
-interface CTIRoutingContentProps {
-  viewState: ViewState;
-  setViewState: (v: ViewState) => void;
-}
-
-type EbrConnectionProperties = { from: string; to: string };
-type EbrConnectionFeature = GeoJSON.Feature<
-  GeoJSON.LineString,
-  EbrConnectionProperties
->;
-
-function buildEbrConnectionsGeoJson(): GeoJSON.FeatureCollection<
-  GeoJSON.LineString,
-  EbrConnectionProperties
-> {
-  const features: EbrConnectionFeature[] = [];
-
-  for (const conn of EBR_CONNECTIONS) {
-    const { from, to } = conn;
-    const fromLocation = ebrLocations.find((l) => l.pe_code === from);
-    const toLocation = ebrLocations.find((l) => l.pe_code === to);
-    if (!fromLocation || !toLocation) continue;
-
-    const coordinates = curveBetweenPoints(
-      [fromLocation.lon, fromLocation.lat],
-      [toLocation.lon, toLocation.lat],
-      {
-        segments: conn.segments ?? 256,
-        bowFactor: conn.bowFactor ?? 1.2,
-        bulge: conn.bulge ?? "north",
-      }
-    );
-
-    features.push({
-      type: "Feature",
-      properties: { from, to },
-      geometry: { type: "LineString", coordinates },
-    });
-  }
-
-  return {
-    type: "FeatureCollection",
-    features,
-  };
-}
-
-function curveBetweenPoints(
-  from: [number, number],
-  to: [number, number],
-  options?: {
-    segments?: number;
-    bowFactor?: number;
-    bulge?: "north" | "south" | "auto";
-  }
-) {
-  const clampedSegments = Math.max(64, Math.floor(options?.segments ?? 256));
-  const bowFactor = options?.bowFactor ?? 1.2;
-  const bulge = options?.bulge ?? "north";
-  const dx = to[0] - from[0];
-  const dy = to[1] - from[1];
-  const distance = Math.hypot(dx, dy);
-
-  if (!Number.isFinite(distance) || distance === 0) return [from, to];
-
-  const midX = (from[0] + to[0]) / 2;
-  const midY = (from[1] + to[1]) / 2;
-
-  const perpX = -dy / distance;
-  const perpY = dx / distance;
-
-  const bow = distance * bowFactor;
-  const controlA: [number, number] = [midX + perpX * bow, midY + perpY * bow];
-  const controlB: [number, number] = [midX - perpX * bow, midY - perpY * bow];
-
-  const control: [number, number] =
-    bulge === "auto"
-      ? controlA
-      : bulge === "north"
-        ? controlA[1] >= controlB[1]
-          ? controlA
-          : controlB
-        : controlA[1] <= controlB[1]
-          ? controlA
-          : controlB;
-
-  const coordinates: Array<[number, number]> = [];
-  for (let i = 0; i <= clampedSegments; i++) {
-    const t = i / clampedSegments;
-    const oneMinusT = 1 - t;
-    const x =
-      oneMinusT * oneMinusT * from[0] +
-      2 * oneMinusT * t * control[0] +
-      t * t * to[0];
-    const y =
-      oneMinusT * oneMinusT * from[1] +
-      2 * oneMinusT * t * control[1] +
-      t * t * to[1];
-
-    coordinates.push([x, y]);
-  }
-
-  return coordinates;
-}
-
-// Helper to get latency cell color
-function getLatencyColor(status: string): string {
-  if (status === "not clear") return "bg-red-500 text-white";
-  return "bg-green-500 text-white";
-}
+import type {
+  CtiGatewayResponse,
+  CTIRoutingContentProps,
+  DataSeries,
+  EBRGatewayTerritoryData,
+  EBRTOGatewaysResponse,
+  EbrToGwResponse,
+  TrendEbrToGwResponse,
+} from "~/types";
 
 // EBR to Gateway Slide (Slide 2)
 function EBRGatewaySlide({
@@ -723,10 +188,11 @@ function EBRGatewaySlide({
                         {territory.entries.map((entry, idx) => (
                           <div
                             key={idx}
-                            className={`grid text-xxs text-[#5e5e5e] bg-white${idx === territory.entries.length - 1
-                              ? " rounded-bl-lg"
-                              : ""
-                              }`}
+                            className={`grid text-xxs text-[#5e5e5e] bg-white${
+                              idx === territory.entries.length - 1
+                                ? " rounded-bl-lg"
+                                : ""
+                            }`}
                             style={{
                               gridTemplateColumns: gridCols,
                               direction: "ltr",
@@ -861,6 +327,15 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
   const [selectedTerritory, setSelectedTerritory] = useState<number | null>(
     null
   );
+  const [nationWideData, setNationWideData] = useState<{
+    degrade: number;
+    maintain: number;
+    improev: number;
+  } | null>(null);
+  const [territoryData, setTerritoryData] = useState<Record<
+    string,
+    string
+  > | null>(null);
 
   // Filter state
   const [filterDate, setFilterDate] = useState(dayjs());
@@ -917,6 +392,13 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
           validateStatus: (status) => status < 600,
         });
 
+      const responseGetEbrToGw: AxiosResponse<EbrToGwResponse> =
+        await axios.get("/api/mbb-routing-mgt/getEbrToGw", {
+          params: { date, hour },
+          timeout: config.api.timeout,
+          validateStatus: (status) => status < 600,
+        });
+
       const responseEbrToGw: AxiosResponse<EBRTOGatewaysResponse> =
         await axios.get("/executive/api/core/core.php", {
           params: { cmd: "ebr-to-gw", date, hour },
@@ -943,10 +425,26 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
           timeout: config.api.timeout,
         });
 
-      const ctiData = responseCtiGateway.data.message;
-      const bdsLookup = new Map(ctiData.BDS.map((e) => [e.hostname, e]));
-      const btcLookup = new Map(ctiData.BTC.map((e) => [e.hostname, e]));
-      const pnkLookup = new Map(ctiData.PNK.map((e) => [e.hostname, e]));
+      // const ctiData = responseCtiGateway.data.message;
+      // const bdsLookup = new Map(ctiData.BDS.map((e) => [e.hostname, e]));
+      // const btcLookup = new Map(ctiData.BTC.map((e) => [e.hostname, e]));
+      // const pnkLookup = new Map(ctiData.PNK.map((e) => [e.hostname, e]));
+
+      const bdsLookup = new Map(
+        Object.values(responseGetEbrToGw.data.data.BDS)
+          .flat()
+          .map((e) => [e.transit, e])
+      );
+      const btcLookup = new Map(
+        Object.values(responseGetEbrToGw.data.data.BTC)
+          .flat()
+          .map((e) => [e.transit, e])
+      );
+      const pnkLookup = new Map(
+        Object.values(responseGetEbrToGw.data.data.PNK)
+          .flat()
+          .map((e) => [e.transit, e])
+      );
 
       const territoryToRegion: Record<string, string[]> = {
         "1": ["01-SUMBAGUT", "02-SUMBAGSEL", "10-SUMBAGTENG"],
@@ -954,6 +452,9 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
         "3": ["05-JAWA TENGAH", "06-JAWA TIMUR", "07-BALINUSRA"],
         "4": ["08-KALIMANTAN", "09-SULAWESI", "11-PUMA"],
       };
+
+      setNationWideData(responseCtiGateway.data.nation_wide);
+      setTerritoryData(responseCtiGateway.data.total_teritory);
 
       setEbrGatewayData(
         Object.entries(responseEbrToGw.data.data.BDS).map(
@@ -984,7 +485,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
             });
 
             return {
-              name: territoryNames[idx] || `Territory ${key}`,
+              name: TERRITORY_NAMES[idx] || `Territory ${key}`,
               entries: value.map((entry) => {
                 const bdsEntry = bdsLookup.get(entry.transit);
                 const btcEntry = btcLookup.get(entry.transit);
@@ -993,18 +494,18 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
                 return {
                   territory: entry.transit,
                   bds: {
-                    ref: (bdsEntry?.treshold ?? 0).toFixed(2),
-                    lat: (bdsEntry?.latency ?? 0).toFixed(2),
+                    ref: Number(bdsEntry?.baseline ?? 0).toFixed(2),
+                    lat: Number(bdsEntry?.latency ?? 0).toFixed(2),
                     status: bdsEntry?.status ?? "clear",
                   },
                   btc: {
-                    ref: (btcEntry?.treshold ?? 0).toFixed(2),
-                    lat: (btcEntry?.latency ?? 0).toFixed(2),
+                    ref: Number(btcEntry?.baseline ?? 0).toFixed(2),
+                    lat: Number(btcEntry?.latency ?? 0).toFixed(2),
                     status: btcEntry?.status ?? "clear",
                   },
                   pnk: {
-                    ref: (pnkEntry?.treshold ?? 0).toFixed(2),
-                    lat: (pnkEntry?.latency ?? 0).toFixed(2),
+                    ref: Number(pnkEntry?.baseline ?? 0).toFixed(2),
+                    lat: Number(pnkEntry?.latency ?? 0).toFixed(2),
                     status: pnkEntry?.status ?? "clear",
                   },
                 };
@@ -1048,7 +549,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
       if (!map.getSource(EBR_CONNECTIONS_SOURCE_ID)) {
         map.addSource(EBR_CONNECTIONS_SOURCE_ID, {
           type: "geojson",
-          data: buildEbrConnectionsGeoJson(),
+          data: buildEbrConnectionsGeoJson(EBR_CONNECTIONS, ebrLocations),
         });
       }
 
@@ -1262,11 +763,7 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
         </Button>
         <div className="ml-auto flex items-center gap-2 text-sm text-[#00838f] underline cursor-pointer hover:text-[#005a7f]">
           Routing Reference Best Path
-          <img
-            src="/src/assets/routing-reference-best-path.webp"
-            alt="Best Path"
-            className="h-4"
-          />
+          <img src={routingReferenceBestPath} alt="Best Path" className="h-4" />
         </div>
       </div>
 
@@ -1281,7 +778,32 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
             </h3>
 
             {/* Donut Chart using ECharts */}
-            <NationWideDonutChart maintain={270} degrade={28} improve={10} />
+            {nationWideData ? (
+              <NationWideDonutChart
+                maintain={nationWideData.maintain}
+                degrade={nationWideData.degrade}
+                improve={nationWideData.improev}
+              />
+            ) : (
+              <div
+                className="flex items-center justify-center"
+                style={{ height: 260, width: 285 }}
+              >
+                <div className="relative">
+                  {/* Outer ring skeleton */}
+                  <div className="w-40 h-40 rounded-full border-[20px] border-gray-200 animate-pulse" />
+                  {/* Inner circle */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-white" />
+                  </div>
+                  {/* Center text skeleton */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="w-16 h-5 bg-gray-200 rounded animate-pulse mb-1" />
+                    <div className="w-12 h-3 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Gateway Section */}
@@ -1474,8 +996,9 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
           <div className="flex-1 relative overflow-hidden">
             <div
               ref={mapContainerRef}
-              className={`absolute inset-0 transition-opacity duration-600 ${mapReady ? "opacity-100" : "opacity-0"
-                }`}
+              className={`absolute inset-0 transition-opacity duration-600 ${
+                mapReady ? "opacity-100" : "opacity-0"
+              }`}
               style={{ width: "100%", height: "100%" }}
             />
 
@@ -1497,10 +1020,11 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
                   <button
                     key={territory.id}
                     onClick={() => zoomToTerritory(territory.id)}
-                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg shadow-md transition-all backdrop-blur-sm ${selectedTerritory === territory.id
-                      ? "ring-2 ring-offset-1"
-                      : "hover:scale-102 hover:shadow-lg"
-                      }`}
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg shadow-md transition-all backdrop-blur-sm ${
+                      selectedTerritory === territory.id
+                        ? "ring-2 ring-offset-1"
+                        : "hover:scale-102 hover:shadow-lg"
+                    }`}
                     style={
                       {
                         backgroundColor:
@@ -1524,7 +1048,9 @@ export function CTIRoutingContent({ viewState }: CTIRoutingContentProps) {
                             : territory.color,
                       }}
                     >
-                      <span>{territory.ebrCount}</span>
+                      <span>
+                        {territoryData?.[`teritory_${territory.id}`] || 0}
+                      </span>
                       <span className="text-[9px] font-medium opacity-90">
                         EBR
                       </span>

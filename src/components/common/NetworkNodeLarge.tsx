@@ -1,14 +1,8 @@
-import cloudImage from "~/assets/cloud.webp";
-import routerImage from "~/assets/router.webp";
-import switchImage from "~/assets/switch.webp";
+import cloudImage from "~/assets/images/cloud.webp";
+import routerImage from "~/assets/images/router.webp";
+import switchImage from "~/assets/images/switch.webp";
 
-// type NodeType = "router" | "switch" | "cloud";
-
-interface NetworkNodeLargeProps {
-  label: string;
-  // type: NodeType;
-  type: string;
-}
+import type { NetworkNodeLargeProps } from "~/types";
 
 export function NetworkNodeLarge({ label, type }: NetworkNodeLargeProps) {
   const imageSrc =
